@@ -23,8 +23,18 @@ func PrepareHeartBeatData(selfId int32, peerMapJson string, addr string) HeartBe
 	return NewHeartBeatData(false, selfId, "", peerMapJson, addr)
 }
 
+func GenerateMPT(mptData map[string]string) p1.MerklePatriciaTrie {
+	//insert data by key-value map
+	//map[KeyType]ValueType
+	mpt := p1.MerklePatriciaTrie{}
+	for key, value := range mptData {
+		mpt.Insert(key, value)
+	}
+	return mpt
+}
+
 func GenerateRandomMPT() p1.MerklePatriciaTrie {
-	//random words generaton library
+	//random words generation library
 	babbler := babble.NewBabbler()
 	babbler.Count = 1
 	mpt := p1.MerklePatriciaTrie{}

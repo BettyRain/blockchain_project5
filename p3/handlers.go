@@ -3,24 +3,20 @@ package p3
 import (
 	"../p1"
 	"../p2"
+	//"../p5"
 	"./data"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
-	"golang.org/x/crypto/sha3"
-	"math/rand"
-	"strings"
-	"time"
-
-	//	"encoding/json"
-	//	"errors"
 	"fmt"
-	//	"github.com/gorilla/mux"
-	//	"io"
+	"golang.org/x/crypto/sha3"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 )
 
 var TA_SERVER = "http://localhost:6688"
@@ -198,8 +194,6 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 // Ask another server to return a block of certain height and hash
 // Loop through all peers in local PeerMap to download a block. As soon as one peer returns the block, stop the loop.
 func AskForBlock(height int32, hash string) {
-	//TODO -> TEST: Update this function to recursively ask
-	// for all the missing predesessor blocks instead of only the parent block.
 	Peers.Rebalance()
 
 	for key, _ := range Peers.Copy() {
@@ -312,6 +306,7 @@ func StartTryingNonces() {
 start:
 	newMPT := p1.MerklePatriciaTrie{}
 	newMPT = data.GenerateRandomMPT()
+	//TODO: new mpt should be with special data
 	for true {
 		blocks := SBC.GetLatestBlocks()
 		blocksCount := len(blocks)
