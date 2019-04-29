@@ -1,7 +1,6 @@
 package p5
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -10,7 +9,14 @@ func init() {
 	// Do some initialization here.
 }
 
-// Register ID, download BlockChain, start HeartBeat
 func Patient(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("HEY IT IS WORKING")
+	//View data by personal code
+}
+
+func Patients(w http.ResponseWriter, r *http.Request) {
+	//View data from blocks (by doctor)
+}
+
+func AddData(w http.ResponseWriter, r *http.Request) {
+	//Add patient data
 }

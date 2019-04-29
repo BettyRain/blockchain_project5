@@ -15,6 +15,18 @@ var routesUser = Routes{
 	Route{
 		"Patient",
 		"GET",
+		"/patients",
+		Patients,
+	},
+	Route{
+		"AddData",
+		"GET",
+		"/add",
+		AddData,
+	},
+	Route{
+		"AddData",
+		"GET",
 		"/patient",
 		Patient,
 	},

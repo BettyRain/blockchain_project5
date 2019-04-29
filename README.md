@@ -22,8 +22,8 @@ Patient will be able to see itâ€™s data by entering personal code
 | N%   | Milestones         | Completion Date | Implementation |
 | :-------: |:-------------: | :-------------:| :-----|
 | 1 | Add patient data | April 28nd | Hashmap with key-value pair will be inserted in mpt by each pair | 
-| 2 | View data from blocks (by doctor) | April 28th | |
-| 3 | Miners can add block with data only | April 30th | |
+| 2 | View data from blocks (by doctor) | April 28th | Doctor can see data from all blocks (only canonical chain, no forks|
+| 3 | Miners can add block with data only | April 30th | Miners should wait till they have a new data and only then solve puzzle|
 | 4 | View data by personal code| May 8th | |
-| 5 | Make added data immutable | May 10th | |
+| 5 | Make added data immutable | May 10th | Miners can't change entered data |
 | 6 | Make interface to adding data (web page) | May 10th | |
