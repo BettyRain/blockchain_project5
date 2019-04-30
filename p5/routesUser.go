@@ -13,7 +13,7 @@ type Routes []Route
 
 var routesUser = Routes{
 	Route{
-		"Patient",
+		"ListOfPatients",
 		"GET",
 		"/patients",
 		Patients,
@@ -25,9 +25,21 @@ var routesUser = Routes{
 		AddData,
 	},
 	Route{
-		"AddData",
+		"PatientData",
 		"GET",
 		"/patient",
 		Patient,
+	},
+	Route{
+		"AddData",
+		"POST",
+		"/add",
+		AddData,
+	},
+	Route{
+		"SendToBlc",
+		"GET",
+		"/send",
+		SendToMiners,
 	},
 }

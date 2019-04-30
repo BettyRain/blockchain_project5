@@ -31,12 +31,13 @@ Patient will be able to see itâ€™s data by entering personal code
 
 ### API Functionalities
 
-/patients
+GET /patients
 Web Page with information about all patients in blockchain. Data shows only canonical chain without forks.
 The data contains block number, timestamp, patient ID and patient information.
 
-/add
+GET /add
+POST /add
 Add information by doctor
 
-/patient
+GET /patient
 See information about a particular patient

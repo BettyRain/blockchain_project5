@@ -13,9 +13,12 @@ import (
 var SBC data.SyncBlockChain
 var Peers data.PeerList
 var ifStarted bool
+var addPage = " <!DOCTYPE html> <html> <head> <meta charset='UTF-8' /> </head> <body> <div> <form method='POST' action='/add'><label>Name</label><input name='name' type='text' value='' /><label>Address</label><input name='address' type='text' value='' /><input type='submit' value='submit' /></form></div></body></html>"
+var kv map[string]string
 
 func init() {
 	SBC = data.NewBlockChain()
+	kv = make(map[string]string)
 	//id, _ := strconv.ParseInt(os.Args[1], 10, 64)
 }
 
@@ -56,4 +59,38 @@ func Patients(w http.ResponseWriter, r *http.Request) {
 
 func AddData(w http.ResponseWriter, r *http.Request) {
 	//Add patient data
+	switch r.Method {
+	case "GET":
+		http.ServeFile(w, r, "addInfo.html")
+	case "POST":
+		id := r.FormValue("id")
+		info := r.FormValue("info")
+
+		kv[id] = info
+		http.ServeFile(w, r, "postInfo.html")
+		//if err := r.ParseForm(); err != nil {
+		//	fmt.Fprintf(w, "ParseForm() err: %v", err)
+		//	return
+		//}
+		//fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.PostForm)
+		//fmt.Println(r.PostForm)
+		//		fmt.Println(r)
+		//		name := r.FormValue("id")
+		//		address := r.FormValue("info")
+		//fmt.Fprintf(w, "Patient ID = %s\n", name)
+		//		fmt.Fprintf(w, "Patient Information = %s\n", address)
+	default:
+		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
+	}
 }
+
+func SendToMiners(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Send to Miners")
+	fmt.Println(kv)
+
+	//send hashmap to miners
+	//so they will add in into block
+}
+
+//Сделаем две кнопки, одна будет снова вызывать форму добавления (что будет идти в хэшмеп,
+// другая отправлять в блок и майнерам
