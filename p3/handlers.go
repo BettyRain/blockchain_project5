@@ -104,6 +104,26 @@ func Download() {
 
 }
 
+func GetSBC() string {
+	//call upload on get from first node (self address port)
+	resp, err := http.Get(FIRST_NODE_ADDR + "/upload")
+
+	if err != nil {
+		println(err)
+		os.Exit(1)
+	}
+	if resp.StatusCode == 200 {
+		respData, erro := ioutil.ReadAll(resp.Body)
+		if erro != nil {
+			println(err)
+			os.Exit(1)
+		}
+		return string(respData)
+		//SBC.UpdateEntireBlockChain(string(respData))
+	}
+	return ""
+}
+
 // Upload blockchain to whoever called this method, return jsonStr
 // Return the BlockChain's JSON. And add the remote peer into the PeerMap.
 func Upload(w http.ResponseWriter, r *http.Request) {

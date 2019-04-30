@@ -130,3 +130,13 @@ func (block *Block) ShowBlock() string {
 	res += ", Size = " + strconv.FormatInt(int64(block.Header.size), 10) + "\n"
 	return res
 }
+
+func (block *Block) ShowMap() string {
+	res := "Block № " + strconv.FormatInt(int64(block.Header.height), 10) + "\n"
+	res += "Timestamp =" + strconv.FormatInt(block.Header.timestamp, 10) + "\n"
+	for k, v := range block.Value.GetKeyValue() {
+		res += "Patient ID: " + k + ", Patient Data = " + v + "\n"
+	}
+	res += "\n"
+	return res
+}

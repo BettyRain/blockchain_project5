@@ -27,3 +27,16 @@ Patient will be able to see itâ€™s data by entering personal code
 | 4 | View data by personal code| May 8th | |
 | 5 | Make added data immutable | May 10th | Miners can't change entered data |
 | 6 | Make interface to adding data (web page) | May 10th | |
+
+
+### API Functionalities
+
+/patients
+Web Page with information about all patients in blockchain. Data shows only canonical chain without forks.
+The data contains block number, timestamp, patient ID and patient information.
+
+/add
+Add information by doctor
+
+/patient
+See information about a particular patient
