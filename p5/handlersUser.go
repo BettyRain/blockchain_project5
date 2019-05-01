@@ -67,6 +67,7 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 		info := r.FormValue("info")
 
 		kv[id] = info
+		fmt.Println(kv)
 		http.ServeFile(w, r, "postInfo.html")
 		//if err := r.ParseForm(); err != nil {
 		//	fmt.Fprintf(w, "ParseForm() err: %v", err)
@@ -92,5 +93,6 @@ func SendToMiners(w http.ResponseWriter, r *http.Request) {
 	//so they will add in into block
 }
 
+// пусть добавляется в queue, чтобы потом майнеры брали рандомное число записей оттуда
 //Сделаем две кнопки, одна будет снова вызывать форму добавления (что будет идти в хэшмеп,
 // другая отправлять в блок и майнерам
