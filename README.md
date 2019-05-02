@@ -76,6 +76,7 @@ Patient can read data only from canonical chain
 
 ```
 Patient ID 12345 results
+DocID: 119911
 
 Timestamp = 1556758412624725900
 Patient ID: 12345, Patient Data = In order to avoid heart disease, it is important to eat a healthy diet and take regular exercise.

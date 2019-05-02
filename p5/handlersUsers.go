@@ -13,7 +13,6 @@ import (
 var SBC data.SyncBlockChain
 var Peers data.PeerList
 var ifStarted bool
-var addPage = " <!DOCTYPE html> <html> <head> <meta charset='UTF-8' /> </head> <body> <div> <form method='POST' action='/add'><label>Name</label><input name='name' type='text' value='' /><label>Address</label><input name='address' type='text' value='' /><input type='submit' value='submit' /></form></div></body></html>"
 var kv map[string]string
 
 func init() {
@@ -78,4 +77,10 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}
+}
+
+func VerifyHash(hash string) bool {
+	//Compare Hash with new generated Hash of <PatID, [PatInfo]PKpat>
+	// (Verify that data hasn't been changed)
+	return false
 }
