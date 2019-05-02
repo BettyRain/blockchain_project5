@@ -15,7 +15,7 @@ Medical institutions will be able to securely share data, no medical records wil
 * Doctor can add information about patient
 * Information will be available to view
 * Information will be non changeable
-* Patient will be able to see it's data
+* Patient will be able to see his/her data
 
 ### Doctors Application
 Doc's data: Public Key, Private Key, DocID <br />
@@ -42,7 +42,7 @@ Doctors can read data only from canonical chain
 * Compare Hash with new generated Hash of <PatID, [PatInfo]PKpat> (Verify that data hasn't been changed)
 * Decrypt [PatInfo]PKpat by Pat's Public Keys for each PatientID
 * Add to result
-* Finished result is printed to web page in form:
+* Finished result is printed to web page in a form:
 ```
 Patients results
 Block № 2
@@ -63,7 +63,7 @@ Patient knows Public Keys and DocID of doctors
 #### Functionalities
 ##### Read his/her data
 Patient reads only his/her data (via ID) <br />
-Patient can read data only from canonical chain
+Patient reads data only from canonical chain
 * Enter DocID into WebPage
 * Search all values with key == DoctorID in canonical blocks
 * Decrypt [H<PatID, [PatInfo]PKpat>]PKdoc with Doc's Private Key
@@ -72,7 +72,7 @@ Patient can read data only from canonical chain
 * Search all key-values with key == PatID
 * Decrypt [PatInfo]PKpat by Pat's Private Key
 * Add to result
-* Finished result is printed to web page in form:
+* Finished result is printed to web page in a form:
 
 ```
 Patient ID 12345 results
@@ -90,11 +90,11 @@ Patient ID: 12345, Patient Data = You have to be very careful how much sugar you
 #### for DoctorsApp
 
 GET /patients <br />
-Web Page with information about all patients in blockchain. Data shows only canonical chain without forks.
+Web Page with information about all patients in blockchain for a specific doctor. Data shows only canonical chain without forks.
 The data contains block number, timestamp, patient ID and patient information. <br />
 
 GET /add <br />
-WebPage to write PatientID - PatientInfo <br />
+WebPage to write PatientID & PatientInfo <br />
 POST /add <br />
 Add information by doctor, send to miners
 
@@ -103,7 +103,7 @@ Add information by doctor, send to miners
 GET /patient <br />
 WebPage to write DocID <br />
 POST /patient <br />
-See information about a particular patient
+See information about a particular patient from a particular doctor
 
 ### Use Case Diagram
 
@@ -113,8 +113,8 @@ See information about a particular patient
 
 | N%   | Milestones         | Completion Date |
 | :-------: |:-------------: | :-------------|
-| 1 | Add patient data by Doc's app | April 28nd |
-| 2 | View data from blocks by Doc's app | April 28th |
+| 1 | Add patient data (Doc's app) | April 28nd |
+| 2 | View data from blocks (Doc's app) | April 28th |
 | 3 | Make interface to adding data (web page) | April 30th |
 | 4 | Checkpoint | May 1st |
 | 5 | Data confidentiality | May 8th |
