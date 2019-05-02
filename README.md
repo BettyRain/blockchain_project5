@@ -97,7 +97,7 @@ WebPage to write PatientID - PatientInfo <br />
 POST /add <br />
 Add information by doctor, send to miners
 
-##### for PatientsApp
+#### for PatientsApp
 
 GET /patient <br />
 WebPage to write DocID <br />
