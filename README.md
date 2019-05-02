@@ -7,7 +7,7 @@ Healthcare data
 
 ### Why/How
 
-Today, doctors, nurses & health professionals are limited in the level of care they can provide, because they canâ€™t view complete, accurate health records. Doctors will be able to publish medical records safely on the blockchain and only authorized people will be able to access the data.
+Today, doctors, nurses & health professionals are limited in the level of care they can provide, because they can not view complete, accurate health records. Doctors will be able to publish medical records safely on the blockchain and only authorized people will be able to access the data.
 Medical institutions will be able to securely share data, no medical records will be lost. Test results will come on time and the probability of correct diagnosis and effective treatment will be higher. Blockchain is immutable, so nobody will be able to fake or lose data. Blockchain is decentralized, so the information will be stored not only in one datacenter, in this case - in different medical institutions.
 
 ### Functionalities/Success
@@ -103,7 +103,9 @@ WebPage to write DocID
 POST /patient
 See information about a particular patient
 
+### Use Case Diagram
 
+![alt text](https://github.com/BettyRain/blockchain_project5/blob/master/Project5UseCaseDiagram.jpeg)
 
 ### Timeline and milestones
 
@@ -116,3 +118,6 @@ See information about a particular patient
 | 5 | Data confidentiality | May 8th |
 | 6 | Data integrity | May 10th |
 | 7 | View data by patients (Patient's App) | May 10th |
+
+### References
+Idea was found at [blockchain ideas](https://www.connectbit.com/blockchain-applications/)
