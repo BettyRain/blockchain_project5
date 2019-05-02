@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	routerUser := p5.NewRouter()
+	routerUser := p5.NewRouterPat()
 	if len(os.Args) > 1 {
 		log.Fatal(http.ListenAndServe(":"+os.Args[1], routerUser))
 	} else {
-		log.Fatal(http.ListenAndServe(":8813", routerUser))
+		log.Fatal(http.ListenAndServe(":9913", routerUser))
 	}
 
 }

@@ -24,6 +24,7 @@ func init() {
 
 func Patient(w http.ResponseWriter, r *http.Request) {
 	//View data by personal code
+	fmt.Fprintf(w, "View data by patient\n")
 }
 
 func Patients(w http.ResponseWriter, r *http.Request) {
@@ -63,36 +64,18 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		http.ServeFile(w, r, "addInfo.html")
 	case "POST":
+		if err := r.ParseForm(); err != nil {
+			fmt.Fprintf(w, "ParseForm() err: %v", err)
+			return
+		}
 		id := r.FormValue("id")
 		info := r.FormValue("info")
-
 		kv[id] = info
-		fmt.Println(kv)
-		http.ServeFile(w, r, "postInfo.html")
-		//if err := r.ParseForm(); err != nil {
-		//	fmt.Fprintf(w, "ParseForm() err: %v", err)
-		//	return
-		//}
-		//fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", r.PostForm)
-		//fmt.Println(r.PostForm)
-		//		fmt.Println(r)
-		//		name := r.FormValue("id")
-		//		address := r.FormValue("info")
-		//fmt.Fprintf(w, "Patient ID = %s\n", name)
-		//		fmt.Fprintf(w, "Patient Information = %s\n", address)
+		//fmt.Println(kv)
+		fmt.Fprintf(w, "Sent to miners\n")
+		fmt.Fprintf(w, "Patient ID = %s\n", id)
+		fmt.Fprintf(w, "Patient Information = %s\n", info)
 	default:
 		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
 	}
 }
-
-func SendToMiners(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Send to Miners")
-	fmt.Println(kv)
-
-	//send hashmap to miners
-	//so they will add in into block
-}
-
-// пусть добавляется в queue, чтобы потом майнеры брали рандомное число записей оттуда
-//Сделаем две кнопки, одна будет снова вызывать форму добавления (что будет идти в хэшмеп,
-// другая отправлять в блок и майнерам

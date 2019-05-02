@@ -11,7 +11,7 @@ type Route struct {
 
 type Routes []Route
 
-var routesUser = Routes{
+var routesDoc = Routes{
 	Route{
 		"ListOfPatients",
 		"GET",
@@ -25,21 +25,24 @@ var routesUser = Routes{
 		AddData,
 	},
 	Route{
+		"AddData",
+		"POST",
+		"/add",
+		AddData,
+	},
+}
+
+var routesPat = Routes{
+	Route{
 		"PatientData",
 		"GET",
 		"/patient",
 		Patient,
 	},
 	Route{
-		"AddData",
+		"PatientData",
 		"POST",
-		"/add",
-		AddData,
-	},
-	Route{
-		"SendToBlc",
-		"GET",
-		"/send",
-		SendToMiners,
+		"/patient",
+		Patient,
 	},
 }
