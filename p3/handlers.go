@@ -119,7 +119,6 @@ func GetSBC() string {
 			os.Exit(1)
 		}
 		return string(respData)
-		//SBC.UpdateEntireBlockChain(string(respData))
 	}
 	return ""
 }
@@ -325,7 +324,7 @@ func Canonical(w http.ResponseWriter, r *http.Request) {
 func StartTryingNonces() {
 start:
 	newMPT := p1.MerklePatriciaTrie{}
-	newMPT = data.GenerateRandomMPT()
+	newMPT = data.GenerateMPT()
 	//TODO: new mpt should be with special data
 	for true {
 		blocks := SBC.GetLatestBlocks()
