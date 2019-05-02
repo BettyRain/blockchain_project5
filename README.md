@@ -7,18 +7,18 @@ Healthcare data
 
 ### Why/How
 
-Today, doctors, nurses & health professionals are limited in the level of care they can provide, because they can not view complete, accurate health records. Doctors will be able to publish medical records safely on the blockchain and only authorized people will be able to access the data.
+Today, doctors, nurses & health professionals are limited in the level of care they can provide, because they can not view complete, accurate health records. Doctors will be able to publish medical records safely on the blockchain and only authorized people will be able to access the data. <br />
 Medical institutions will be able to securely share data, no medical records will be lost. Test results will come on time and the probability of correct diagnosis and effective treatment will be higher. Blockchain is immutable, so nobody will be able to fake or lose data. Blockchain is decentralized, so the information will be stored not only in one datacenter, in this case - in different medical institutions.
 
 ### Functionalities/Success
 
-Doctor can add information about patient
-Information will be available to view
-Information will be non changeable
-Patient will be able to see itâ€™s data by entering personal code
+* Doctor can add information about patient
+* Information will be available to view
+* Information will be non changeable
+* Patient will be able to see it's data
 
 ### Doctors Application
-Doc's data: Public Key, Private Key, DocID
+Doc's data: Public Key, Private Key, DocID <br />
 Doctor knows Public Keys, Private Key and PatID of patients
 #### Functionalities
 ##### Add data
@@ -34,7 +34,7 @@ Data format: <DocID, <PatID, PatInfo> >
 * Send to miner <DocID, [H<PatID, [PatInfo]PKpat>]PKdoc>
 
 ##### Read Data
-Doctor reads only his/her data (via ID)
+Doctor reads only his/her data (via ID) <br />
 Doctors can read data only from canonical chain
 * Search all values with key == DoctorID in canonical blocks
 * Decrypt [H<PatID, [PatInfo]PKpat>]PKdoc with Doc's Private Key
@@ -58,11 +58,11 @@ Patient ID: 12345, Patient Data = You have to be very careful how much sugar you
 
 
 ### Patients Application
-Patient's data: Public Key, Private Key, PatID
+Patient's data: Public Key, Private Key, PatID <br />
 Patient knows Public Keys and DocID of doctors
 #### Functionalities
 ##### Read his/her data
-Patient reads only his/her data (via ID)
+Patient reads only his/her data (via ID) <br />
 Patient can read data only from canonical chain
 * Enter DocID into WebPage
 * Search all values with key == DoctorID in canonical blocks
@@ -85,22 +85,23 @@ Patient ID: 12345, Patient Data = You have to be very careful how much sugar you
 ```
 
 
-### API Functionalities for DoctorsApp
+### API Functionalities
+#### for DoctorsApp
 
-GET /patients
+GET /patients <br />
 Web Page with information about all patients in blockchain. Data shows only canonical chain without forks.
-The data contains block number, timestamp, patient ID and patient information.
+The data contains block number, timestamp, patient ID and patient information. <br />
 
-GET /add
-WebPage to write PatientID - PatientInfo
-POST /add
+GET /add <br />
+WebPage to write PatientID - PatientInfo <br />
+POST /add <br />
 Add information by doctor, send to miners
 
-### API Functionalities for PatientsApp
+##### for PatientsApp
 
-GET /patient
-WebPage to write DocID
-POST /patient
+GET /patient <br />
+WebPage to write DocID <br />
+POST /patient <br />
 See information about a particular patient
 
 ### Use Case Diagram
