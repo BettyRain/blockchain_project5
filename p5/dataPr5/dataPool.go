@@ -1,7 +1,6 @@
 package dataPr5
 
 import (
-	"../../p3"
 	"fmt"
 	"sync"
 )
@@ -15,6 +14,7 @@ type PatientData struct {
 type DataPool struct {
 	DB map[string]string
 	//DocId H< PatID - Info >
+	Hops int
 }
 
 type ItemQueue struct {
@@ -24,6 +24,10 @@ type ItemQueue struct {
 
 func (iq *ItemQueue) Initialize() {
 
+}
+
+func NewItemQueue() ItemQueue {
+	return ItemQueue{}
 }
 
 //add dataPr5 to pool
@@ -36,12 +40,11 @@ func AddToPool(docID string, patID string, patInfo string) DataPool {
 	hash := patID + patInfo
 	data := make(map[string]string)
 	data[docID] = hash
-	dataPool := DataPool{data}
+	dataPool := DataPool{data, 3}
 	fmt.Println("===============================")
 	fmt.Println(dataPool)
 	//TODO: send data to first node
 	//TODO: hops?
-	//	p3.ForwardNewData(dataPool)
 	fmt.Println("===============================")
 
 	return dataPool

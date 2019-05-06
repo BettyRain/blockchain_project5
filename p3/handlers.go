@@ -30,13 +30,15 @@ var SBC data.SyncBlockChain
 var Peers data.PeerList
 var ifStarted bool
 var IQ dataPr5.ItemQueue
-var itemQueue []dataPr5.DataPool
+
+//var itemQueue []dataPr5.DataPool
 
 //Create SyncBlockChain and PeerList instances.
 func init() {
 	// This function will be executed before everything else.
 	// Do some initialization here.
 	SBC = data.NewBlockChain()
+	IQ = dataPr5.NewItemQueue()
 	// When server works
 	// Peers = dataPr5.NewPeerList(Register(), 32)
 	// While server doesn't work -> use port as id
@@ -53,7 +55,7 @@ func Start(w http.ResponseWriter, r *http.Request) {
 	} else {
 		Download()
 	}
-	FirstHeatdBeat()
+	FirstHeartBeat()
 	go StartHeartBeat()
 	go StartTryingNonces()
 }
@@ -251,7 +253,7 @@ func ForwardHeartBeat(heartBeatData data.HeartBeatData) {
 	}
 }
 
-func FirstHeatdBeat() {
+func FirstHeartBeat() {
 	peerMapJson, err := Peers.PeerMapToJson()
 	if err != nil {
 		println(err)
@@ -326,7 +328,7 @@ func Canonical(w http.ResponseWriter, r *http.Request) {
 func StartTryingNonces() {
 start:
 	newMPT := p1.MerklePatriciaTrie{}
-	newMPT = GenerateMPT(itemQueue)
+	newMPT = GenerateMPT(IQ)
 	for true {
 		blocks := SBC.GetLatestBlocks()
 		blocksCount := len(blocks)
@@ -374,34 +376,54 @@ func VerifyNonce(nonce string, hash string, root string) bool {
 	}
 }
 
-func GenerateMPT(itemQueue []dataPr5.DataPool) p1.MerklePatriciaTrie {
+func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 	//random number how many lines to insert in a block (assumption: <=4)
-	n := len(itemQueue)
-	num := rand.Intn(n)
-	count := 0
-	//TODO: delete info which is in canonical chain
+	n := len(IQ.Items)
 	mpt := p1.MerklePatriciaTrie{}
-	for _, value := range itemQueue {
-		if count < num {
-			for k, v := range value.DB {
-				mpt.Insert(k, v)
-				count++
+
+	if n > 0 {
+		fmt.Println("IT IS BIGGER THAN 1 YAAY")
+		num := rand.Intn(n)
+		fmt.Println(num)
+		count := 0
+		//TODO: delete info which is in canonical chain
+		//TODO: something strange is here
+		for _, value := range IQ.Items {
+			if count < num {
+				for k, v := range value.DB {
+					mpt.Insert(k, v)
+					fmt.Println(k)
+					fmt.Println(v)
+					count++
+					fmt.Println(count)
+				}
+			} else {
+				break
 			}
-		} else {
-			break
+			fmt.Println("IT IS BIGGER THAN 1 YAAY")
 		}
+	} else {
+		mpt.Insert("nil", "nil")
 	}
+
 	return mpt
 }
 
 //Send the HeartBeatData to all peers in local PeerMap.
 //send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
 func ForwardNewData(dataPool dataPr5.DataPool) {
-	Peers.Rebalance()
-	//TODO: data to json - check
 	dataJson, _ := json.Marshal(dataPool)
-	for key, _ := range Peers.Copy() {
-		http.Post(key+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
+	fmt.Println("DATA JSON")
+	fmt.Println(dataJson)
+	fmt.Println("DATA JSON")
+
+	if dataPool.Hops == 3 {
+		http.Post(FIRST_NODE_ADDR+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
+	} else {
+		//TODO: data to json - check
+		for key, _ := range Peers.Copy() {
+			http.Post(key+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
+		}
 	}
 }
 
@@ -417,15 +439,17 @@ func DataReceive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//TODO: check json data
-	itemQueue := append(itemQueue, data)
+	IQ.AddToQueue(data)
+	fmt.Println("ITEMQUEUE DATA")
+	fmt.Println(data)
 	fmt.Println("ITEMQUEUE")
-	fmt.Println(itemQueue)
+	fmt.Println(IQ)
 	fmt.Println("ITEMQUEUE")
 	//TODO: do we need hops?
-	/*newHops := heartBeatDataNew.Hops - 1
-	heartBeatDataNew.Hops = newHops
-	if heartBeatDataNew.Hops > 0 {
-		ForwardHeartBeat(heartBeatDataNew)
-	}*/
+	newHops := data.Hops - 1
+	data.Hops = newHops
+	if data.Hops > 0 {
+		ForwardNewData(data)
+	}
 	w.WriteHeader(http.StatusOK)
 }
