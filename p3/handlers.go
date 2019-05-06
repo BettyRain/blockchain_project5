@@ -3,7 +3,7 @@ package p3
 import (
 	"../p1"
 	"../p2"
-	//"../p5"
+	"../p5/dataPr5"
 	"./data"
 	"bytes"
 	"encoding/hex"
@@ -29,6 +29,8 @@ var BLOCKCHAIN_JSON = "[{\"hash\": \"3ff3b4efe9177f705550231079c2459ba54a22d340a
 var SBC data.SyncBlockChain
 var Peers data.PeerList
 var ifStarted bool
+var IQ dataPr5.ItemQueue
+var itemQueue []dataPr5.DataPool
 
 //Create SyncBlockChain and PeerList instances.
 func init() {
@@ -36,7 +38,7 @@ func init() {
 	// Do some initialization here.
 	SBC = data.NewBlockChain()
 	// When server works
-	// Peers = data.NewPeerList(Register(), 32)
+	// Peers = dataPr5.NewPeerList(Register(), 32)
 	// While server doesn't work -> use port as id
 	id, _ := strconv.ParseInt(os.Args[1], 10, 64)
 	Peers = data.NewPeerList(int32(id), 32)
@@ -128,7 +130,7 @@ func GetSBC() string {
 func Upload(w http.ResponseWriter, r *http.Request) {
 	blockChainJson, err := SBC.BlockChainToJson()
 	if err != nil {
-		//	data.PrintError(err, "Upload")
+		//	dataPr5.PrintError(err, "Upload")
 		fmt.Printf("%s", err)
 	}
 	fmt.Fprint(w, blockChainJson)
@@ -324,8 +326,7 @@ func Canonical(w http.ResponseWriter, r *http.Request) {
 func StartTryingNonces() {
 start:
 	newMPT := p1.MerklePatriciaTrie{}
-	newMPT = data.GenerateMPT()
-	//TODO: new mpt should be with special data
+	newMPT = GenerateMPT(itemQueue)
 	for true {
 		blocks := SBC.GetLatestBlocks()
 		blocksCount := len(blocks)
@@ -371,4 +372,60 @@ func VerifyNonce(nonce string, hash string, root string) bool {
 	} else {
 		return false
 	}
+}
+
+func GenerateMPT(itemQueue []dataPr5.DataPool) p1.MerklePatriciaTrie {
+	//random number how many lines to insert in a block (assumption: <=4)
+	n := len(itemQueue)
+	num := rand.Intn(n)
+	count := 0
+	//TODO: delete info which is in canonical chain
+	mpt := p1.MerklePatriciaTrie{}
+	for _, value := range itemQueue {
+		if count < num {
+			for k, v := range value.DB {
+				mpt.Insert(k, v)
+				count++
+			}
+		} else {
+			break
+		}
+	}
+	return mpt
+}
+
+//Send the HeartBeatData to all peers in local PeerMap.
+//send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
+func ForwardNewData(dataPool dataPr5.DataPool) {
+	Peers.Rebalance()
+	//TODO: data to json - check
+	dataJson, _ := json.Marshal(dataPool)
+	for key, _ := range Peers.Copy() {
+		http.Post(key+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
+	}
+}
+
+func DataReceive(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		println(err)
+	}
+	data := dataPr5.DataPool{}
+	err = json.Unmarshal([]byte(string(body)), &data)
+	if err != nil {
+		println(err)
+	}
+
+	//TODO: check json data
+	itemQueue := append(itemQueue, data)
+	fmt.Println("ITEMQUEUE")
+	fmt.Println(itemQueue)
+	fmt.Println("ITEMQUEUE")
+	//TODO: do we need hops?
+	/*newHops := heartBeatDataNew.Hops - 1
+	heartBeatDataNew.Hops = newHops
+	if heartBeatDataNew.Hops > 0 {
+		ForwardHeartBeat(heartBeatDataNew)
+	}*/
+	w.WriteHeader(http.StatusOK)
 }

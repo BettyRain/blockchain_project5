@@ -43,6 +43,12 @@ var routes = Routes{
 		HeartBeatReceive,
 	},
 	Route{
+		"DataReceive",
+		"POST",
+		"/data/receive",
+		DataReceive,
+	},
+	Route{
 		"Start",
 		"GET",
 		"/start",

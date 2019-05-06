@@ -4,10 +4,10 @@ import (
 	"../p3/data"
 	"fmt"
 	"net/http"
-
 	//"../p1"
 	"../p2"
 	"../p3"
+	"./dataPr5"
 )
 
 var SBC data.SyncBlockChain
@@ -22,8 +22,8 @@ func init() {
 }
 
 func Patient(w http.ResponseWriter, r *http.Request) {
-	//View data by personal code
-	fmt.Fprintf(w, "View data by patient\n")
+	//View dataPr5 by personal code
+	fmt.Fprintf(w, "View dataPr5 by patient\n")
 }
 
 func Patients(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +58,7 @@ func Patients(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddData(w http.ResponseWriter, r *http.Request) {
-	//Add patient data
+	//Add patient dataPr5
 	switch r.Method {
 	case "GET":
 		http.ServeFile(w, r, "addInfo.html")
@@ -70,6 +70,7 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 		id := r.FormValue("id")
 		info := r.FormValue("info")
 		kv[id] = info
+		dataPr5.AddToPool("123", id, info)
 		//fmt.Println(kv)
 		fmt.Fprintf(w, "Sent to miners\n")
 		fmt.Fprintf(w, "Patient ID = %s\n", id)
@@ -81,6 +82,6 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 
 func VerifyHash(hash string) bool {
 	//Compare Hash with new generated Hash of <PatID, [PatInfo]PKpat>
-	// (Verify that data hasn't been changed)
+	// (Verify that dataPr5 hasn't been changed)
 	return false
 }

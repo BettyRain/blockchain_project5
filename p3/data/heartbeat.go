@@ -2,7 +2,6 @@ package data
 
 import (
 	"../../p1"
-	"../../p5"
 	"github.com/tjarratt/babble"
 	"math/rand"
 )
@@ -16,7 +15,7 @@ type HeartBeatData struct {
 	Hops        int32  `json:"hops"`
 }
 
-var IQ p5.ItemQueue
+//var IQ p5.ItemQueue
 
 func NewHeartBeatData(ifNewBlock bool, id int32, blockJson string, peerMapJson string, addr string) HeartBeatData {
 	return HeartBeatData{IfNewBlock: ifNewBlock, Id: id, BlockJson: blockJson, PeerMapJson: peerMapJson, Addr: addr, Hops: 3}
@@ -24,26 +23,6 @@ func NewHeartBeatData(ifNewBlock bool, id int32, blockJson string, peerMapJson s
 
 func PrepareHeartBeatData(selfId int32, peerMapJson string, addr string) HeartBeatData {
 	return NewHeartBeatData(false, selfId, "", peerMapJson, addr)
-}
-
-func GenerateMPT() p1.MerklePatriciaTrie {
-	//random number how many lines to insert in a block (assumption: <=4)
-	num := rand.Intn(4)
-	count := 0
-	//TODO: delete info which is in canonical chain
-	IQ.GetFromPool()
-	mpt := p1.MerklePatriciaTrie{}
-	for _, value := range IQ.Items {
-		if count < num {
-			for k, v := range value.DB {
-				mpt.Insert(k, v)
-				count++
-			}
-		} else {
-			break
-		}
-	}
-	return mpt
 }
 
 func GenerateRandomMPT() p1.MerklePatriciaTrie {
