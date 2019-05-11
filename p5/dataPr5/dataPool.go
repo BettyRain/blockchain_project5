@@ -2,6 +2,7 @@ package dataPr5
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
 )
 
@@ -23,11 +24,25 @@ type ItemQueue struct {
 }
 
 func (iq *ItemQueue) Initialize() {
-
 }
 
 func NewItemQueue() ItemQueue {
 	return ItemQueue{}
+}
+
+func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
+	fmt.Println("REMOVING")
+	fmt.Println("BEFORE")
+	fmt.Println(iq.Items)
+
+	sliceA := iq.Items
+	sliceA = append(sliceA[:index], sliceA[index+1:]...)
+	iq.Items = sliceA
+
+	fmt.Println("AFTER")
+	fmt.Println(iq.Items)
+	fmt.Println("REMOVING")
+	return *iq
 }
 
 //add dataPr5 to pool
@@ -43,8 +58,8 @@ func AddToPool(docID string, patID string, patInfo string) DataPool {
 	dataPool := DataPool{data, 3}
 	fmt.Println("===============================")
 	fmt.Println(dataPool)
+	//fmt.Println()
 	//TODO: send data to first node
-	//TODO: hops?
 	fmt.Println("===============================")
 
 	return dataPool
@@ -52,9 +67,15 @@ func AddToPool(docID string, patID string, patInfo string) DataPool {
 
 //add dataPr5 to queue
 func (iq *ItemQueue) AddToQueue(dp DataPool) {
-	//and send to miners??
+	//if data in, don't add
 	iq.Lock.Lock()
-	iq.Items = append(iq.Items, dp)
+	eq := false
+	for i := 0; i < len(iq.Items); i++ {
+		eq = reflect.DeepEqual(iq.Items[i].DB, dp.DB)
+	}
+	if eq == false {
+		iq.Items = append(iq.Items, dp)
+	}
 	iq.Lock.Unlock()
 }
 
@@ -69,7 +90,6 @@ func (iq *ItemQueue) GetFromPool() []DataPool {
 	//random number how many lines to insert in a block (assumption: <=4)
 	num := rand.Intn(4)
 	count := 0
-	//TODO: delete info which is in canonical chain
 	iq.GetFromPool()
 	mpt := p1.MerklePatriciaTrie{}
 	for _, value := range iq.Items {

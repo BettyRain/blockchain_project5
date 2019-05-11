@@ -201,7 +201,15 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 			if !SBC.CheckParentHash(newBlock) {
 				AskForBlock(newBlock.GetHeight()-1, newBlock.GetParentHash())
 			}
+			fmt.Println("=========================================")
+			fmt.Println(IQ.Items)
+			RemoveAddedData(newBlock.Value)
+
 			SBC.Insert(newBlock)
+			//TODO: it adds the same data somehow - why?
+			fmt.Println(IQ.Items)
+			fmt.Println("?????????????????????????????????????????")
+
 		} else {
 			fmt.Println("NONCE NOT VERIFIED")
 		}
@@ -212,6 +220,18 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 		ForwardHeartBeat(heartBeatDataNew)
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func RemoveAddedData(trie p1.MerklePatriciaTrie) {
+	for key, value := range trie.GetKeyValue() {
+		for i:=0; i< len(IQ.Items); i++ {
+			for k, v := range IQ.Items[i].DB {
+				if (k==key)&&(v==value) {
+					IQ.RemoveItem(i)
+				}
+			}
+		}
+	}
 }
 
 // Ask another server to return a block of certain height and hash
@@ -246,6 +266,9 @@ func AskForBlock(height int32, hash string) {
 //Send the HeartBeatData to all peers in local PeerMap.
 //send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
 func ForwardHeartBeat(heartBeatData data.HeartBeatData) {
+	fmt.Println("IT IS MY BLOCK WOHOO")
+	fmt.Println(heartBeatData.BlockJson)
+	fmt.Println("IT IS MY BLOCK WOHOO")
 	Peers.Rebalance()
 	heartBeatJson, _ := json.Marshal(heartBeatData)
 	for key, _ := range Peers.Copy() {
@@ -353,7 +376,11 @@ start:
 		peerMapJson, _ := Peers.PeerMapToJson()
 		heartBeat := data.NewHeartBeatData(true, Peers.GetSelfId(), blockJson, peerMapJson, SELF_ADDR)
 		ForwardHeartBeat(heartBeat)
-		fmt.Println("IT IS MY BLOCK WOHOO")
+		RemoveAddedData(newBlock.Value)
+
+	/*	fmt.Println("IT IS MY BLOCK WOHOO")
+		fmt.Println(newBlock.Value)
+		fmt.Println("IT IS MY BLOCK WOHOO")*/
 	}
 }
 
@@ -386,16 +413,14 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 		num := rand.Intn(n)
 		fmt.Println(num)
 		count := 0
-		//TODO: delete info which is in canonical chain
-		//TODO: something strange is here
+		if num == 0 {
+			num = 1
+		}
 		for _, value := range IQ.Items {
 			if count < num {
 				for k, v := range value.DB {
 					mpt.Insert(k, v)
-					fmt.Println(k)
-					fmt.Println(v)
 					count++
-					fmt.Println(count)
 				}
 			} else {
 				break
@@ -440,12 +465,6 @@ func DataReceive(w http.ResponseWriter, r *http.Request) {
 
 	//TODO: check json data
 	IQ.AddToQueue(data)
-	fmt.Println("ITEMQUEUE DATA")
-	fmt.Println(data)
-	fmt.Println("ITEMQUEUE")
-	fmt.Println(IQ)
-	fmt.Println("ITEMQUEUE")
-	//TODO: do we need hops?
 	newHops := data.Hops - 1
 	data.Hops = newHops
 	if data.Hops > 0 {

@@ -27,13 +27,17 @@ func Patient(w http.ResponseWriter, r *http.Request) {
 }
 
 func Patients(w http.ResponseWriter, r *http.Request) {
+	//TODO: change doc ID
+	docID := "123"
 	respData := p3.GetSBC()
 	SBC.UpdateEntireBlockChain(string(respData))
 	var latestBlocks []p2.Block
 	latestBlocks = SBC.GetLatestBlocks()
 	var length int32
 	res := ""
+	mapData := ""
 	num := 0
+	isData := false
 	if len(latestBlocks) > 0 {
 		length = latestBlocks[0].GetHeight()
 		if len(latestBlocks) > 1 {
@@ -46,10 +50,22 @@ func Patients(w http.ResponseWriter, r *http.Request) {
 			res += "Patient results" + "\n"
 			latestBlock := latestBlocks[j]
 			for i := length - 1; i >= 0; i-- {
-				res += latestBlock.ShowMap()
+				for k, v := range latestBlock.Value.GetKeyValue() {
+					if k == docID {
+						mapData += "Patient ID: " + k + ", Patient Data = " + v + "\n"
+						isData = true
+					}
+				}
+				if isData == true {
+					res += latestBlock.ShowBlockData()
+					res += mapData
+					res += "\n"
+				}
 				parentBlock := p2.Block{}
 				parentBlock = SBC.GetParentBlock(latestBlock)
 				latestBlock = parentBlock
+				isData = false
+				mapData = ""
 			}
 			res += "\n"
 		}
