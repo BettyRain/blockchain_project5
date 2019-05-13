@@ -145,7 +145,8 @@ func (block *Block) ShowBlockData() string {
 	res := "Block № " + strconv.FormatInt(int64(block.Header.height), 10) + "\n"
 
 	//tm := time.Unix(block.Header.timestamp, 0)
-	res += "Timestamp =" + strconv.FormatInt(block.Header.timestamp, 10) + "\n"
+	//TODO: change data format
+	res += "Timestamp = " + strconv.FormatInt(block.Header.timestamp, 10) + "\n"
 	//time.Now().UTC().UnixNano()
 	//st := tm.UTC().String()
 	//res += "Timestamp = " + st + "\n"

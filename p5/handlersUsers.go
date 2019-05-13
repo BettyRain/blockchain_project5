@@ -4,6 +4,7 @@ import (
 	"../p3/data"
 	"fmt"
 	"net/http"
+	"os"
 	//"../p1"
 	"../p2"
 	"../p3"
@@ -11,7 +12,9 @@ import (
 )
 
 var SBC data.SyncBlockChain
-var Peers data.PeerList
+var PatientList dataPr5.PatientList
+var DoctorList dataPr5.DoctorList
+
 var ifStarted bool
 var kv map[string]string
 
@@ -103,4 +106,20 @@ func VerifyHash(hash string) bool {
 	//Compare Hash with new generated Hash of <PatID, [PatInfo]PKpat>
 	// (Verify that dataPr5 hasn't been changed)
 	return false
+}
+
+//Create public-private keys for patients
+func StartPat(w http.ResponseWriter, r *http.Request) {
+	patId := os.Args[1]
+	PatientList = dataPr5.NewPatientList(patId)
+	ifStarted = true
+	//TODO: print that you are registered and id
+}
+
+//Create public-private keys for doctors
+func StartDoc(w http.ResponseWriter, r *http.Request) {
+	docId := os.Args[1]
+	DoctorList = dataPr5.NewDoctorList(docId)
+	ifStarted = true
+	//TODO: print that you are registered and id
 }

@@ -31,17 +31,9 @@ func NewItemQueue() ItemQueue {
 }
 
 func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
-	fmt.Println("REMOVING")
-	fmt.Println("BEFORE")
-	fmt.Println(iq.Items)
-
 	sliceA := iq.Items
 	sliceA = append(sliceA[:index], sliceA[index+1:]...)
 	iq.Items = sliceA
-
-	fmt.Println("AFTER")
-	fmt.Println(iq.Items)
-	fmt.Println("REMOVING")
 	return *iq
 }
 

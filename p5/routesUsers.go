@@ -30,6 +30,12 @@ var routesDoc = Routes{
 		"/add",
 		AddData,
 	},
+	Route{
+		"RegisterPatient",
+		"GET",
+		"/start",
+		StartDoc,
+	},
 }
 
 var routesPat = Routes{
@@ -40,9 +46,9 @@ var routesPat = Routes{
 		Patient,
 	},
 	Route{
-		"PatientData",
-		"POST",
-		"/patient",
-		Patient,
+		"RegisterPatient",
+		"GET",
+		"/start",
+		StartPat,
 	},
 }

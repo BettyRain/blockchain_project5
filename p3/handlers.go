@@ -224,9 +224,9 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 
 func RemoveAddedData(trie p1.MerklePatriciaTrie) {
 	for key, value := range trie.GetKeyValue() {
-		for i:=0; i< len(IQ.Items); i++ {
+		for i := 0; i < len(IQ.Items); i++ {
 			for k, v := range IQ.Items[i].DB {
-				if (k==key)&&(v==value) {
+				if (k == key) && (v == value) {
 					IQ.RemoveItem(i)
 				}
 			}
@@ -378,9 +378,9 @@ start:
 		ForwardHeartBeat(heartBeat)
 		RemoveAddedData(newBlock.Value)
 
-	/*	fmt.Println("IT IS MY BLOCK WOHOO")
-		fmt.Println(newBlock.Value)
-		fmt.Println("IT IS MY BLOCK WOHOO")*/
+		/*	fmt.Println("IT IS MY BLOCK WOHOO")
+			fmt.Println(newBlock.Value)
+			fmt.Println("IT IS MY BLOCK WOHOO")*/
 	}
 }
 
