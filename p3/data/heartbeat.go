@@ -1,11 +1,5 @@
 package data
 
-import (
-	"../../p1"
-	"github.com/tjarratt/babble"
-	"math/rand"
-)
-
 type HeartBeatData struct {
 	IfNewBlock  bool   `json:"ifNewBlock"`
 	Id          int32  `json:"id"`
@@ -25,7 +19,7 @@ func PrepareHeartBeatData(selfId int32, peerMapJson string, addr string) HeartBe
 	return NewHeartBeatData(false, selfId, "", peerMapJson, addr)
 }
 
-func GenerateRandomMPT() p1.MerklePatriciaTrie {
+/*func GenerateRandomMPT() p1.MerklePatriciaTrie {
 	//random words generation library
 	babbler := babble.NewBabbler()
 	babbler.Count = 1
@@ -36,4 +30,4 @@ func GenerateRandomMPT() p1.MerklePatriciaTrie {
 		mpt.Insert(babbler.Babble(), babbler.Babble())
 	}
 	return mpt
-}
+}*/

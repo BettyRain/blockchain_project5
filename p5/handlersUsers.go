@@ -34,8 +34,9 @@ func init() {
 	IDnew, _ := strconv.ParseInt(os.Args[1], 10, 64)
 	Peers = data.NewPeerList(int32(IDnew), 32)
 	ID = os.Args[1]
-
-	//id, _ := strconv.ParseInt(os.Args[1], 10, 64)
+	PatientList = dataPr5.PatientList{}
+	PatientList.PrMap = make(map[string][]byte)
+	PatientList.PubMap = make(map[string][]byte)
 }
 
 func Patient(w http.ResponseWriter, r *http.Request) {
@@ -76,17 +77,19 @@ func Patient(w http.ResponseWriter, r *http.Request) {
 				latestBlock := latestBlocks[j]
 				for i := length - 1; i >= 0; i-- {
 					for k, v := range latestBlock.Value.GetKeyValue() {
-						if k != "" {
+
+						if k != "nil" {
+							//isVerified := DoctorList.VerifyDocSign(k, v, docID)
 							//TODO: data verificaction
-							decryptedMap := PatientList.DecryptPatInfo(v)
-							fmt.Println(decryptedMap)
-							for ke, va := range decryptedMap {
-								if ke == ID {
+							isVerified := true
+							if isVerified {
+								decryptedMap := PatientList.DecryptPatInfo(v)
+								fmt.Println(decryptedMap)
+								for ke, va := range decryptedMap {
 									mapData += "Patient ID: " + ke + ", Patient Data = " + va + "\n"
 									isData = true
 								}
 							}
-
 						}
 					}
 					if isData == true {
@@ -108,12 +111,10 @@ func Patient(w http.ResponseWriter, r *http.Request) {
 }
 
 func Show(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s\n%s", Peers.Show())
+	fmt.Fprintf(w, "%s\n%s", Peers.Show(), PatientList.Show())
 }
 
 func Patients(w http.ResponseWriter, r *http.Request) {
-	//TODO: change doc ID
-	//docID := "123"
 	respData := p3.GetSBC()
 	SBC.UpdateEntireBlockChain(string(respData))
 	var latestBlocks []p2.Block
@@ -136,36 +137,23 @@ func Patients(w http.ResponseWriter, r *http.Request) {
 			latestBlock := latestBlocks[j]
 			for i := length - 1; i >= 0; i-- {
 				for k, v := range latestBlock.Value.GetKeyValue() {
-					//(doc.VerifyDocSign(string(signature), patInfo, doc.selfId))
-					//fmt.Println("VERIFY")
-					/*if len(k)>0{
-						fmt.Println("^^^^^^^^^^^^^^^^^^^^6")
-						fmt.Println(k)
-						fmt.Println(v)
-						fmt.Println("^^^^^^^^^^^^^^^^^^^^6")
-					}
-						fmt.Println("ID = ", ID)
-					fmt.Println(DoctorList.VerifyDocSign(k, v, ID))
-					fmt.Println("VERIFY")
-					if DoctorList.VerifyDocSign(k, v, ID) {
-						mapData += "Patient ID: " + k + ", Patient Data = " + v + "\n"
-						isData = true
-					}*/
-
 					if k != "nil" {
-						isVerified := DoctorList.VerifyDocSign(k, v, ID)
-						fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^")
-						fmt.Println(isVerified)
-						fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^")
-						//TODO: data verificaction
-						fmt.Println("IT IS NOT")
-						decryptedMap := PatientList.DecryptPatInfo(v)
-						fmt.Println(decryptedMap)
-						for ke, va := range decryptedMap {
-							mapData += "Patient ID: " + ke + ", Patient Data = " + va + "\n"
-							isData = true
-						}
 
+						signature := latestBlock.Value.GetSignature()[k]
+						fmt.Println("111111111111111111111111111")
+						fmt.Println(signature)
+						fmt.Println("111111111111111111111111111")
+
+						isVerified := DoctorList.VerifyDocSign(k, v, ID, signature)
+						//TODO: data verificaction
+						if isVerified {
+							decryptedMap := PatientList.DecryptPatInfo(v)
+							fmt.Println(decryptedMap)
+							for ke, va := range decryptedMap {
+								mapData += "Patient ID: " + ke + ", Patient Data = " + va + "\n"
+								isData = true
+							}
+						}
 					}
 				}
 				if isData == true {
@@ -206,7 +194,6 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 		}
 
 		dataPool := dataPr5.AddToPool(ID, id, info, PatientList, DoctorList)
-
 		p3.ForwardNewData(dataPool)
 
 		//fmt.Println(kv)
@@ -224,6 +211,14 @@ func StartPat(w http.ResponseWriter, r *http.Request) {
 	patId := os.Args[1]
 	PatientList = dataPr5.NewPatientList(patId)
 	ifStarted = true
+	fmt.Println(PatientList.PrMap)
+	fmt.Println(PatientList.PubMap)
+	/*jsonPatientList, _ := json.Marshal(PatientList)
+	fmt.Println(jsonPatientList)*/
+	jsonPublicMap, _ := json.Marshal(PatientList.PubMap)
+	jsonPrivateMap, _ := json.Marshal(PatientList.PrMap)
+	patientMessage := dataPr5.PatientMessage{JsonPubMap: jsonPublicMap, JsonPrMap: jsonPrivateMap, Hops: 3}
+	FirstForwardPatientList(patientMessage)
 	fmt.Fprintf(w, "%s\n", "You are registered, you can use /patient to see your information from a special doctor")
 }
 
@@ -238,12 +233,53 @@ func StartDoc(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s\n", "You are registered, you can use /add to add new information or /patiens to see added information")
 }
 
-func ForwardPatientList(list dataPr5.PatientList) {
+func ForwardPatientList(list dataPr5.PatientMessage) {
 	//TODO: send patients list to doctors
-	//patientListJson, _ := json.Marshal(list)
-	//for key, _ := range Peers.Copy() {
-	//	http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
-	//}
+	patientListJson, _ := json.Marshal(list)
+	for key, _ := range Peers.Copy() {
+		http.Post(key+"/patientlist/receive", "application/json", bytes.NewBuffer(patientListJson))
+	}
+}
+
+func PatientListReceive(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("I GOT PATIENT LIST")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		println(err)
+	}
+	patientData := dataPr5.PatientMessage{}
+	err = json.Unmarshal([]byte(string(body)), &patientData)
+	fmt.Println("PATIENT LIST")
+	if err != nil {
+		println(err)
+	}
+	fmt.Println(string(body))
+	fmt.Println(patientData)
+	privateMap := make(map[string][]byte)
+	publicMap := make(map[string][]byte)
+
+	err = json.Unmarshal(patientData.JsonPrMap, &privateMap)
+	fmt.Println(err)
+	err = json.Unmarshal(patientData.JsonPubMap, &publicMap)
+	fmt.Println(err)
+
+	PatientList.AddNewPatient(publicMap, privateMap)
+
+	fmt.Println(PatientList)
+	newHops := patientData.Hops - 1
+	patientData.Hops = newHops
+
+	fmt.Println("PATIENT LIST")
+	if patientData.Hops > 0 {
+		ForwardPatientList(patientData)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func FirstForwardPatientList(list dataPr5.PatientMessage) {
+	//TODO: send patients list to doctors
+	patientListJson, _ := json.Marshal(list)
+	http.Post(FIRST_NODE_ADDR+"/patientlist/receive", "application/json", bytes.NewBuffer(patientListJson))
 }
 
 func StartHeartBeat() {

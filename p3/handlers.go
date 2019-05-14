@@ -201,14 +201,13 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 			if !SBC.CheckParentHash(newBlock) {
 				AskForBlock(newBlock.GetHeight()-1, newBlock.GetParentHash())
 			}
-			fmt.Println("=========================================")
-			fmt.Println(IQ.Items)
-			RemoveAddedData(newBlock.Value)
 
+			RemoveAddedData(newBlock.Value)
 			SBC.Insert(newBlock)
-			//TODO: it adds the same data somehow - why?
-			fmt.Println(IQ.Items)
-			fmt.Println("?????????????????????????????????????????")
+			//TODO: ПОСМОТРИ ТУТ ЧТО-ТО С ДАННЫМИ
+			fmt.Println("yyyyyyyyyyyyyyyyyyyyyyyyyyy")
+			fmt.Println(newBlock.Value.GetKeyValue())
+			fmt.Println("yyyyyyyyyyyyyyyyyyyyyyyyyyy")
 
 		} else {
 			fmt.Println("NONCE NOT VERIFIED")
@@ -419,16 +418,17 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 		for _, value := range IQ.Items {
 			if count < num {
 				for k, v := range value.DB {
-					mpt.Insert(k, v)
+					mpt.Insert(k, v, value.Sign)
 					count++
 				}
 			} else {
 				break
 			}
+
 			fmt.Println("IT IS BIGGER THAN 1 YAAY")
 		}
 	} else {
-		mpt.Insert("nil", "nil")
+		mpt.Insert("nil", "nil", []byte{})
 	}
 
 	return mpt
@@ -437,6 +437,9 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 //Send the HeartBeatData to all peers in local PeerMap.
 //send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
 func ForwardNewData(dataPool dataPr5.DataPool) {
+	fmt.Println("6666666666666666666666666")
+	fmt.Println(dataPool)
+	fmt.Println("66666666666666666666666")
 	dataJson, _ := json.Marshal(dataPool)
 	fmt.Println("DATA JSON")
 	fmt.Println(dataJson)

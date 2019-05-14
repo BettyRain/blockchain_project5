@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"unsafe"
 )
 
 type PatientData struct {
@@ -15,6 +16,7 @@ type PatientData struct {
 type DataPool struct {
 	DB map[string]string
 	//DocId H< PatID - Info >
+	Sign []byte
 	Hops int
 }
 
@@ -40,29 +42,32 @@ func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
 //add dataPr5 to pool
 func AddToPool(docID string, patID string, patInfo string, pat PatientList, doc DoctorList) DataPool {
 	//Encrypt PatientInfo with patient's Private Key
-	//Hash <PatID, [PatInfo]PK>
-	//Sign H<PatID, [PatInfo]PKpat> with doc's Private key
-	//Send to miner <DocID, [H<PatID, [PatInfo]PKpat>]PKdoc>
-	//TODO: create [H<PatID, [PatInfo]PKpat>]PKdoc
-	//hash := patID + patInfo
 	hash := pat.EncryptPatInfo(patID, patInfo)
-	fmt.Println("===============================")
-	fmt.Println(hash)
-	docHash := doc.SignByDoc(hash)
-	fmt.Println("===============================")
-	fmt.Println(docHash)
-
+	docHash := doc.SignByDoc(hash, docID)
 	data := make(map[string]string)
-	data[docHash] = hash
-	dataPool := DataPool{data, 3}
-	fmt.Println("===============================")
+	docHashHash := BytesToString(docHash)
+	// str2 := string(byteArray1[:])
+	//  str3 := bytes.NewBuffer(byteArray1).String()
+
+	data[docID] = hash
+	fmt.Println("2222222222222222222")
+	fmt.Println(docHashHash)
+	fmt.Println("2222222222222222222")
+	dataPool := DataPool{data, docHash, 3}
 	return dataPool
+}
+
+func BytesToString(b []byte) string {
+	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh := reflect.StringHeader{bh.Data, bh.Len}
+	return *(*string)(unsafe.Pointer(&sh))
 }
 
 //add dataPr5 to queue
 func (iq *ItemQueue) AddToQueue(dp DataPool) {
 	//if data in, don't add
 	iq.Lock.Lock()
+
 	eq := false
 	for i := 0; i < len(iq.Items); i++ {
 		eq = reflect.DeepEqual(iq.Items[i].DB, dp.DB)

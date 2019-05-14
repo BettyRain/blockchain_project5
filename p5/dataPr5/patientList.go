@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"log"
-
 	//"crypto/x509"
 	//"encoding/pem"
 	"fmt"
@@ -18,30 +17,61 @@ import (
 //Public Key, Private Key, PatID, lock
 type PatientList struct {
 	//patID  string
-	pubMap map[string][]byte
+	PubMap map[string][]byte
 	//id -> public key
-	prMap map[string][]byte
+	PrMap map[string][]byte
 	//id -> private key
-	mux sync.Mutex
+	mux  sync.Mutex
+	Hops int
+}
+
+type PatientMessage struct {
+	JsonPubMap []byte
+	JsonPrMap  []byte
+	Hops       int
 }
 
 func NewPatientList(id string) PatientList {
 	patList := PatientList{}
 	patList.Register(id)
 	patList.mux = sync.Mutex{}
+	patList.Hops = 3
 	return patList
+}
+
+func (pat *PatientList) AddNewPatient(PubMap map[string][]byte, PrMap map[string][]byte) {
+	fmt.Println("ADD NEW PATIENT")
+	fmt.Println(pat.PubMap)
+	for key, value := range PubMap {
+		pat.PubMap[key] = value
+	}
+	for key, value := range PrMap {
+		pat.PrMap[key] = value
+	}
+	fmt.Println(pat.PubMap)
+	fmt.Println("ADD NEW PATIENT")
+}
+
+func (pat *PatientList) Show() string {
+	pat.mux.Lock()
+	defer pat.mux.Unlock()
+	res := "This is a Patient List: \n"
+	for key, _ := range pat.PubMap {
+		res += "id = " + key + "\n"
+	}
+	return res
 }
 
 func (pat *PatientList) Register(id string) {
 	pat.mux.Lock()
 	//pat.patID = id
-	if len(pat.pubMap) < 1 {
-		pat.pubMap = make(map[string][]byte)
-		pat.prMap = make(map[string][]byte)
+	if len(pat.PubMap) < 1 {
+		pat.PubMap = make(map[string][]byte)
+		pat.PrMap = make(map[string][]byte)
 	}
 	privateKey, publicKey := GenerateKeys()
-	pat.prMap[id] = privateKey
-	pat.pubMap[id] = publicKey
+	pat.PrMap[id] = privateKey
+	pat.PubMap[id] = publicKey
 
 	fmt.Println("---- NEW PATIENT ----")
 	fmt.Printf("privateKey=%v\n", privateKey)
@@ -50,16 +80,6 @@ func (pat *PatientList) Register(id string) {
 	fmt.Printf("PAT LIST=%v\n", pat)
 	fmt.Println("---- NEW PATIENT ----")
 	defer pat.mux.Unlock()
-}
-
-func (pat *PatientList) Show() string {
-	//	pat.mux.Lock()
-	//	defer pat.mux.Unlock()
-	res := "This is a Patients Map: \n"
-	/*	for key, value := range pat.pubMap {
-		//res += "ID = " + key + ", Public Key = " + strconv.Itoa(int(value.E)) + "\n"
-	}*/
-	return res
 }
 
 func GenerateKeys() ([]byte, []byte) {
@@ -75,7 +95,7 @@ func GenerateKeys() ([]byte, []byte) {
 func (pat *PatientList) EncryptPatInfo(patID string, patInfo string) string {
 	rng := rand.Reader
 	message := []byte(patInfo)
-	value, _ := pat.pubMap[patID]
+	value, _ := pat.PubMap[patID]
 	key := BytesToPublicKey(value)
 	signature, _ := rsa.EncryptPKCS1v15(rng, key, message[:])
 	patInf := make(map[string][]byte)
@@ -98,7 +118,7 @@ func (pat *PatientList) DecryptPatInfo(hash string) map[string]string {
 	fmt.Println(m)
 	patInf := make(map[string]string)
 	for key, val := range m {
-		prKey, _ := pat.prMap[key]
+		prKey, _ := pat.PrMap[key]
 
 		private := BytesToPrivateKey(prKey)
 		infoSign, er := rsa.DecryptPKCS1v15(rng, private, val)
@@ -189,5 +209,5 @@ func BytesToPublicKey(pub []byte) *rsa.PublicKey {
 }
 
 func (pat *PatientList) GetPublicKeys() map[string][]byte {
-	return pat.pubMap
+	return pat.PubMap
 }

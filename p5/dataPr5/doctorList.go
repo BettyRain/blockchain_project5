@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"os"
-	"reflect"
 	"sync"
 )
 
@@ -48,21 +47,14 @@ func (doc *DoctorList) Register(id string) {
 	defer doc.mux.Unlock()
 }
 
-func (doc *DoctorList) SignByDoc(patInfo string) string {
+func (doc *DoctorList) SignByDoc(patInfo string, docID string) []byte {
 	//preparing data for signatures
 	rng := rand.Reader
 	message := []byte(patInfo)
 	hashed := sha256.Sum256(message)
 
 	//get doctor's private key
-	value, errr := doc.prMap[doc.selfId]
-	fmt.Println("HERE IS DOC")
-	fmt.Println(errr)
-	fmt.Println(doc.selfId)
-	fmt.Println(doc.prMap)
-	fmt.Println(value)
-	fmt.Println("HERE IS DOC")
-
+	value, _ := doc.prMap[docID]
 	key := BytesToPrivateKey(value)
 
 	//get the signature
@@ -70,49 +62,22 @@ func (doc *DoctorList) SignByDoc(patInfo string) string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	/*	fmt.Println("-----------------------")
-		fmt.Println(string(signature))
-		fmt.Println(patInfo)
 
-		fmt.Println("-----------------------")*/
-
-	fmt.Println(doc.VerifyDocSign(string(signature), patInfo, doc.selfId))
-	return string(signature)
+	//fmt.Println(doc.VerifyDocSign(string(signature), patInfo, doc.selfId))
+	return signature
 }
 
-func (doc *DoctorList) VerifyDocSign(signature string, patInfo string, docID string) bool {
-	rng := rand.Reader
+func (doc *DoctorList) VerifyDocSign(pastID string, patInfo string, docID string, sign []byte) bool {
 	message := []byte(patInfo)
 	hashed := sha256.Sum256(message)
-	value, _ := doc.prMap[doc.selfId]
+	value, _ := doc.prMap[docID]
 	key := BytesToPrivateKey(value)
 
-	sign2, err := rsa.SignPKCS1v15(rng, key, crypto.SHA256, hashed[:])
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%55")
-	fmt.Println(reflect.DeepEqual(sign2, signature))
-	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%55")
-	/*if reflect.DeepEqual(sign2, signature) {
-		return true
-	}
-	return false*/
-
-	hashed2 := sha256.Sum256([]byte(message))
-	value2, _ := doc.pubMap[docID]
-	if value == nil {
-		return false
-	}
-	key2 := BytesToPublicKey(value2)
-
-	//verify the signature, respond true if verified
-	err = rsa.VerifyPKCS1v15(key2, crypto.SHA256, hashed2[:], []byte(signature))
+	err := rsa.VerifyPKCS1v15(&key.PublicKey, crypto.SHA256, hashed[:], sign)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from verification: %s\n", err)
-		fmt.Println("91aa")
 		return false
+	} else {
+		return true
 	}
-	return true
 }

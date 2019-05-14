@@ -35,6 +35,7 @@ type jsonBlockSt struct {
 	Size       int32
 	Nonce      string
 	Mpt        map[string]string
+	MptSign    map[string][]byte
 }
 
 func Initial(new_height int32, new_parentHash string, new_value p1.MerklePatriciaTrie, new_nonce string) Block {
@@ -75,6 +76,7 @@ func (blc *Block) EncodeToJSON() (string, error) {
 		Size:       blc.Header.size,
 		Nonce:      blc.Header.nonce,
 		Mpt:        blc.Value.GetKeyValue(),
+		MptSign:    blc.Value.GetSignature(),
 	}
 	b, err := json.Marshal(group)
 
@@ -90,7 +92,7 @@ func (decodedBlock *Block) DecodeFromStruct(blocks jsonBlockSt) {
 	//Create new mpt
 	mptDecoded := p1.MerklePatriciaTrie{}
 	for key, value := range blocks.Mpt {
-		mptDecoded.Insert(key, value)
+		mptDecoded.Insert(key, value, blocks.MptSign[key])
 	}
 	decodedBlock.Header.hash = blocks.Hash
 	decodedBlock.Header.parentHash = blocks.ParentHash
@@ -135,7 +137,7 @@ func (block *Block) ShowMap() string {
 	res := "Block № " + strconv.FormatInt(int64(block.Header.height), 10) + "\n"
 	res += "Timestamp =" + strconv.FormatInt(block.Header.timestamp, 10) + "\n"
 	for k, v := range block.Value.GetKeyValue() {
-		res += "Patient ID: " + k + ", Patient Data = " + v + "\n"
+		res += "Patient ID: " + string(k) + ", Patient Data = " + string(v) + "\n"
 	}
 	res += "\n"
 	return res

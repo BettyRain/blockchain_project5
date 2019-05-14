@@ -48,6 +48,12 @@ var routesDoc = Routes{
 		"/show",
 		Show,
 	},
+	Route{
+		"PatientListReceive",
+		"POST",
+		"/patientlist/receive",
+		PatientListReceive,
+	},
 }
 
 var routesPat = Routes{

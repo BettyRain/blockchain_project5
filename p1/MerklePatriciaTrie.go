@@ -23,6 +23,7 @@ type Node struct {
 type MerklePatriciaTrie struct {
 	db map[string]Node
 	kv map[string]string //key value pair
+	ks map[string][]byte
 	//string is a hashed_value of Node
 	root string
 }
@@ -64,13 +65,19 @@ func (mpt *MerklePatriciaTrie) Get(key string) (string, error) {
 	return "", errors.New("path_not_found")
 }
 
-func (mpt *MerklePatriciaTrie) Insert(key string, new_value string) {
+func (mpt *MerklePatriciaTrie) Insert(key string, new_value string, sign []byte) {
 	n := Node{}
 	//add key-value pair
 	if mpt.kv == nil {
 		mpt.kv = make(map[string]string)
 	}
 	mpt.kv[key] = new_value
+
+	//add signatures
+	if mpt.ks == nil {
+		mpt.ks = make(map[string][]byte)
+	}
+	mpt.ks[key] = sign
 
 	encoded_key := keyToHex(key)
 	root_node := mpt.db[mpt.root]
@@ -1045,6 +1052,10 @@ func node_to_string(node Node) string {
 
 func (mpt *MerklePatriciaTrie) GetKeyValue() map[string]string {
 	return mpt.kv
+}
+
+func (mpt *MerklePatriciaTrie) GetSignature() map[string][]byte {
+	return mpt.ks
 }
 
 func (mpt *MerklePatriciaTrie) GetRoot() string {
