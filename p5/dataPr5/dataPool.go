@@ -38,7 +38,7 @@ func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
 }
 
 //add dataPr5 to pool
-func AddToPool(docID string, patID string, patInfo string, pat PatientList) DataPool {
+func AddToPool(docID string, patID string, patInfo string, pat PatientList, doc DoctorList) DataPool {
 	//Encrypt PatientInfo with patient's Private Key
 	//Hash <PatID, [PatInfo]PK>
 	//Sign H<PatID, [PatInfo]PKpat> with doc's Private key
@@ -48,8 +48,12 @@ func AddToPool(docID string, patID string, patInfo string, pat PatientList) Data
 	hash := pat.EncryptPatInfo(patID, patInfo)
 	fmt.Println("===============================")
 	fmt.Println(hash)
+	docHash := doc.SignByDoc(hash)
+	fmt.Println("===============================")
+	fmt.Println(docHash)
+
 	data := make(map[string]string)
-	data[docID] = hash
+	data[docHash] = hash
 	dataPool := DataPool{data, 3}
 	fmt.Println("===============================")
 	return dataPool

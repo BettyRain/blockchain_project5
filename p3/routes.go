@@ -54,4 +54,10 @@ var routes = Routes{
 		"/start",
 		Start,
 	},
+	Route{
+		"ShowTrie",
+		"GET",
+		"/trie",
+		ShowTrie,
+	},
 }

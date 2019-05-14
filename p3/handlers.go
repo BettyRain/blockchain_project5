@@ -472,3 +472,37 @@ func DataReceive(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func ShowTrie(w http.ResponseWriter, r *http.Request) {
+	var latestBlocks []p2.Block
+	latestBlocks = SBC.GetLatestBlocks()
+	var length int32
+	res := ""
+	if len(latestBlocks) > 0 {
+		length = latestBlocks[0].GetHeight()
+
+		if len(latestBlocks) > 1 {
+			for j := 0; j < len(latestBlocks); j++ {
+				res += "BlockChain #" + strconv.Itoa(j+1) + "\n"
+				latestBlock := latestBlocks[j]
+				for i := length - 1; i >= 0; i-- {
+					res += latestBlock.ShowMap()
+					parentBlock := p2.Block{}
+					parentBlock = SBC.GetParentBlock(latestBlock)
+					latestBlock = parentBlock
+				}
+				res += "\n"
+			}
+		} else {
+			res = "BlockChain #1" + "\n"
+			latestBlock := latestBlocks[0]
+			for i := length - 1; i >= 0; i-- {
+				res += latestBlock.ShowMap()
+				parentBlock := p2.Block{}
+				parentBlock = SBC.GetParentBlock(latestBlock)
+				latestBlock = parentBlock
+			}
+		}
+	}
+	fmt.Fprintf(w, "%s\n", res)
+}

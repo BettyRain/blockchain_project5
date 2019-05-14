@@ -46,6 +46,12 @@ var routesPat = Routes{
 		Patient,
 	},
 	Route{
+		"PatientData",
+		"POST",
+		"/patient",
+		Patient,
+	},
+	Route{
 		"RegisterPatient",
 		"GET",
 		"/start",
