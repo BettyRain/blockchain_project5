@@ -75,4 +75,10 @@ var routesPat = Routes{
 		"/start",
 		StartPat,
 	},
+	Route{
+		"DocListReceive",
+		"POST",
+		"/doctorlist/receive",
+		DoctorListReceive,
+	},
 }

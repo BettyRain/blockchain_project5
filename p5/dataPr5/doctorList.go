@@ -12,7 +12,7 @@ import (
 
 type DoctorList struct {
 	selfId string
-	pubMap map[string][]byte
+	PubMap map[string][]byte
 	//id -> public key
 	prMap map[string][]byte
 	//id -> private key
@@ -29,14 +29,14 @@ func NewDoctorList(id string) DoctorList {
 func (doc *DoctorList) Register(id string) {
 	doc.mux.Lock()
 	//pat.patID = id
-	if len(doc.pubMap) < 1 {
-		doc.pubMap = make(map[string][]byte)
+	if len(doc.PubMap) < 1 {
+		doc.PubMap = make(map[string][]byte)
 		doc.prMap = make(map[string][]byte)
 	}
 
 	privateKey, publicKey := GenerateKeys()
 	doc.prMap[id] = privateKey
-	doc.pubMap[id] = publicKey
+	doc.PubMap[id] = publicKey
 	doc.selfId = id
 
 	fmt.Println("---- NEW DOCTOR ----")
@@ -62,18 +62,38 @@ func (doc *DoctorList) SignByDoc(patInfo string, docID string) []byte {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	//fmt.Println(doc.VerifyDocSign(string(signature), patInfo, doc.selfId))
 	return signature
 }
 
 func (doc *DoctorList) VerifyDocSign(pastID string, patInfo string, docID string, sign []byte) bool {
 	message := []byte(patInfo)
 	hashed := sha256.Sum256(message)
-	value, _ := doc.prMap[docID]
-	key := BytesToPrivateKey(value)
+	value, _ := doc.PubMap[docID]
+	key := BytesToPublicKey(value)
 
-	err := rsa.VerifyPKCS1v15(&key.PublicKey, crypto.SHA256, hashed[:], sign)
+	err := rsa.VerifyPKCS1v15(key, crypto.SHA256, hashed[:], sign)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error from verification: %s\n", err)
+		return false
+	} else {
+		return true
+	}
+}
+
+func (doc *DoctorList) GetPublicMap() map[string][]byte {
+	return doc.PubMap
+}
+
+func (doc *DoctorList) VerifyDocSignForPatient(docID string, patInfo string, sign []byte) bool {
+	message := []byte(patInfo)
+	hashed := sha256.Sum256(message)
+	value, exist := doc.PubMap[docID]
+	if !exist {
+		return false
+	}
+	key := BytesToPublicKey(value)
+
+	err := rsa.VerifyPKCS1v15(key, crypto.SHA256, hashed[:], sign)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from verification: %s\n", err)
 		return false

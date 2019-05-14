@@ -106,30 +106,24 @@ func (pat *PatientList) EncryptPatInfo(patID string, patInfo string) string {
 }
 
 func (pat *PatientList) DecryptPatInfo(hash string) map[string]string {
-	fmt.Println("DECRYPTED")
-	//hash := []byte(h)
-	fmt.Println(hash)
 	var m map[string][]byte
 	err := json.Unmarshal([]byte(hash), &m)
 	if err != nil {
 		fmt.Println(err)
 	}
 	rng := rand.Reader
-	fmt.Println(m)
 	patInf := make(map[string]string)
 	for key, val := range m {
-		prKey, _ := pat.PrMap[key]
-
-		private := BytesToPrivateKey(prKey)
-		infoSign, er := rsa.DecryptPKCS1v15(rng, private, val)
-		if err != nil {
-			fmt.Println(er)
+		prKey, exist := pat.PrMap[key]
+		if exist {
+			private := BytesToPrivateKey(prKey)
+			infoSign, er := rsa.DecryptPKCS1v15(rng, private, val)
+			if err != nil {
+				fmt.Println(er)
+			}
+			patInf[key] = string(infoSign)
 		}
-		fmt.Println(string(infoSign))
-		fmt.Println("DECRYPTED")
-		patInf[key] = string(infoSign)
 	}
-	fmt.Println(patInf)
 	return patInf
 }
 
