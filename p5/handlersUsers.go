@@ -2,9 +2,15 @@ package p5
 
 import (
 	"../p3/data"
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
+	"time"
+
 	//"../p1"
 	"../p2"
 	"../p3"
@@ -18,11 +24,17 @@ var DoctorList dataPr5.DoctorList
 var ifStarted bool
 var kv map[string]string
 var ID string
+var Peers data.PeerList
+var FIRST_NODE_ADDR = "http://localhost:8813"
+var SELF_ADDR = "http://localhost:" + os.Args[1]
 
 func init() {
 	SBC = data.NewBlockChain()
 	kv = make(map[string]string)
+	IDnew, _ := strconv.ParseInt(os.Args[1], 10, 64)
+	Peers = data.NewPeerList(int32(IDnew), 32)
 	ID = os.Args[1]
+
 	//id, _ := strconv.ParseInt(os.Args[1], 10, 64)
 }
 
@@ -41,7 +53,62 @@ func Patient(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("HERE IS ID OF DOC", docID)
 		//TODO: Verify DocID
 		//TODO: if patients id = show
+		respData := p3.GetSBC()
+		SBC.UpdateEntireBlockChain(string(respData))
+		var latestBlocks []p2.Block
+		latestBlocks = SBC.GetLatestBlocks()
+		var length int32
+		res := ""
+		mapData := ""
+		num := 0
+		isData := false
+		if len(latestBlocks) > 0 {
+			length = latestBlocks[0].GetHeight()
+			if len(latestBlocks) > 1 {
+				num = len(latestBlocks) - 1
+			} else {
+				num = len(latestBlocks)
+			}
+
+			for j := 0; j < num; j++ {
+				res += "Patient results" + "\n"
+				res += ID + "\n"
+				latestBlock := latestBlocks[j]
+				for i := length - 1; i >= 0; i-- {
+					for k, v := range latestBlock.Value.GetKeyValue() {
+						if k != "" {
+							//TODO: data verificaction
+							decryptedMap := PatientList.DecryptPatInfo(v)
+							fmt.Println(decryptedMap)
+							for ke, va := range decryptedMap {
+								if ke == ID {
+									mapData += "Patient ID: " + ke + ", Patient Data = " + va + "\n"
+									isData = true
+								}
+							}
+
+						}
+					}
+					if isData == true {
+						res += latestBlock.ShowBlockData()
+						res += mapData
+						res += "\n"
+					}
+					parentBlock := p2.Block{}
+					parentBlock = SBC.GetParentBlock(latestBlock)
+					latestBlock = parentBlock
+					isData = false
+					mapData = ""
+				}
+				res += "\n"
+			}
+		}
+		fmt.Fprintf(w, "%s\n", res)
 	}
+}
+
+func Show(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s\n%s", Peers.Show())
 }
 
 func Patients(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +151,12 @@ func Patients(w http.ResponseWriter, r *http.Request) {
 						mapData += "Patient ID: " + k + ", Patient Data = " + v + "\n"
 						isData = true
 					}*/
-					if k != "" {
+
+					if k != "nil" {
+						isVerified := DoctorList.VerifyDocSign(k, v, ID)
+						fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^")
+						fmt.Println(isVerified)
+						fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^")
 						//TODO: data verificaction
 						fmt.Println("IT IS NOT")
 						decryptedMap := PatientList.DecryptPatInfo(v)
@@ -147,17 +219,97 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 }
 
 //Create public-private keys for patients
+//Registation
 func StartPat(w http.ResponseWriter, r *http.Request) {
 	patId := os.Args[1]
 	PatientList = dataPr5.NewPatientList(patId)
 	ifStarted = true
-	//TODO: print that you are registered and id
+	fmt.Fprintf(w, "%s\n", "You are registered, you can use /patient to see your information from a special doctor")
 }
 
 //Create public-private keys for doctors
+//Registation
 func StartDoc(w http.ResponseWriter, r *http.Request) {
 	docId := os.Args[1]
 	DoctorList = dataPr5.NewDoctorList(docId)
 	ifStarted = true
-	//TODO: print that you are registered and id
+	FirstHeartBeat()
+	go StartHeartBeat()
+	fmt.Fprintf(w, "%s\n", "You are registered, you can use /add to add new information or /patiens to see added information")
+}
+
+func ForwardPatientList(list dataPr5.PatientList) {
+	//TODO: send patients list to doctors
+	//patientListJson, _ := json.Marshal(list)
+	//for key, _ := range Peers.Copy() {
+	//	http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
+	//}
+}
+
+func StartHeartBeat() {
+	for true {
+		fmt.Println("MY HEARTBEAT")
+		duration := time.Duration(10) * time.Second
+		time.Sleep(duration)
+
+		peerMapJson, err := Peers.PeerMapToJson()
+		if err != nil {
+			println(err)
+		}
+
+		if len(Peers.Copy()) > 0 {
+			heartBeat := data.PrepareHeartBeatData(Peers.GetSelfId(), peerMapJson, SELF_ADDR)
+			heartBeatJson, err := json.Marshal(heartBeat)
+			if err != nil {
+				println(err)
+			}
+			for key, _ := range Peers.Copy() {
+				http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
+			}
+		}
+	}
+}
+
+func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("I GOT IT")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		println(err)
+	}
+	heartBeatData := data.HeartBeatData{}
+	err = json.Unmarshal([]byte(string(body)), &heartBeatData)
+	if err != nil {
+		println(err)
+	}
+	heartBeatDataNew := heartBeatData
+	Peers.InjectPeerMapJson(heartBeatDataNew.PeerMapJson, SELF_ADDR)
+	Peers.Add(heartBeatDataNew.Addr, heartBeatDataNew.Id)
+
+	newHops := heartBeatDataNew.Hops - 1
+	heartBeatDataNew.Hops = newHops
+	if heartBeatDataNew.Hops > 0 {
+		ForwardHeartBeat(heartBeatDataNew)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func ForwardHeartBeat(heartBeatData data.HeartBeatData) {
+	heartBeatJson, _ := json.Marshal(heartBeatData)
+	for key, _ := range Peers.Copy() {
+		http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
+	}
+}
+
+func FirstHeartBeat() {
+	peerMapJson, err := Peers.PeerMapToJson()
+	if err != nil {
+		println(err)
+	}
+	if SELF_ADDR != FIRST_NODE_ADDR {
+		fmt.Println("MY FIRST HEARTBEAT")
+		heartBeatFirst := data.HeartBeatData{false, Peers.GetSelfId(), "", peerMapJson, SELF_ADDR, 0}
+		heartBeatJsonFirst, _ := json.Marshal(heartBeatFirst)
+
+		http.Post(FIRST_NODE_ADDR+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJsonFirst))
+	}
 }

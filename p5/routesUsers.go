@@ -36,6 +36,18 @@ var routesDoc = Routes{
 		"/start",
 		StartDoc,
 	},
+	Route{
+		"HeartBeatReceive",
+		"POST",
+		"/heartbeat/receive",
+		HeartBeatReceive,
+	},
+	Route{
+		"Show",
+		"GET",
+		"/show",
+		Show,
+	},
 }
 
 var routesPat = Routes{

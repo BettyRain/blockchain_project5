@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"os"
+	"reflect"
 	"sync"
 )
 
@@ -79,23 +80,35 @@ func (doc *DoctorList) SignByDoc(patInfo string) string {
 	return string(signature)
 }
 
-func (doc *DoctorList) VerifyDocSign(signature string, message string, docID string) bool {
-	fmt.Println("-----------------------")
-	fmt.Println(signature)
-	fmt.Println(message)
-	fmt.Println(docID)
-	fmt.Println("-----------------------")
-	hashed := sha256.Sum256([]byte(message))
-	value, _ := doc.pubMap[docID]
+func (doc *DoctorList) VerifyDocSign(signature string, patInfo string, docID string) bool {
+	rng := rand.Reader
+	message := []byte(patInfo)
+	hashed := sha256.Sum256(message)
+	value, _ := doc.prMap[doc.selfId]
+	key := BytesToPrivateKey(value)
+
+	sign2, err := rsa.SignPKCS1v15(rng, key, crypto.SHA256, hashed[:])
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%55")
+	fmt.Println(reflect.DeepEqual(sign2, signature))
+	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%%%55")
+	/*if reflect.DeepEqual(sign2, signature) {
+		return true
+	}
+	return false*/
+
+	hashed2 := sha256.Sum256([]byte(message))
+	value2, _ := doc.pubMap[docID]
 	if value == nil {
-		fmt.Println("82aa")
 		return false
 	}
-	key := BytesToPublicKey(value)
-	fmt.Println("KEY")
-	fmt.Println(key)
+	key2 := BytesToPublicKey(value2)
+
 	//verify the signature, respond true if verified
-	err := rsa.VerifyPKCS1v15(key, crypto.SHA256, hashed[:], []byte(signature))
+	err = rsa.VerifyPKCS1v15(key2, crypto.SHA256, hashed2[:], []byte(signature))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from verification: %s\n", err)
 		fmt.Println("91aa")
