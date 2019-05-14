@@ -89,7 +89,7 @@ func AddData(w http.ResponseWriter, r *http.Request) {
 		id := r.FormValue("id")
 		info := r.FormValue("info")
 		kv[id] = info
-		dataPool := dataPr5.AddToPool("123", id, info)
+		dataPool := dataPr5.AddToPool("123", id, info, PatientList)
 
 		p3.ForwardNewData(dataPool)
 

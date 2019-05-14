@@ -38,22 +38,20 @@ func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
 }
 
 //add dataPr5 to pool
-func AddToPool(docID string, patID string, patInfo string) DataPool {
+func AddToPool(docID string, patID string, patInfo string, pat PatientList) DataPool {
 	//Encrypt PatientInfo with patient's Private Key
 	//Hash <PatID, [PatInfo]PK>
 	//Sign H<PatID, [PatInfo]PKpat> with doc's Private key
 	//Send to miner <DocID, [H<PatID, [PatInfo]PKpat>]PKdoc>
 	//TODO: create [H<PatID, [PatInfo]PKpat>]PKdoc
-	hash := patID + patInfo
+	//hash := patID + patInfo
+	hash := pat.EncryptPatInfo(patID, patInfo)
+	fmt.Println("===============================")
+	fmt.Println(hash)
 	data := make(map[string]string)
 	data[docID] = hash
 	dataPool := DataPool{data, 3}
 	fmt.Println("===============================")
-	fmt.Println(dataPool)
-	//fmt.Println()
-	//TODO: send data to first node
-	fmt.Println("===============================")
-
 	return dataPool
 }
 

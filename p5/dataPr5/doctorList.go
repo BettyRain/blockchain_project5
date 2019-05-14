@@ -32,8 +32,8 @@ func (doc *DoctorList) Register(id string) {
 		doc.prMap = make(map[string]rsa.PrivateKey)
 	}
 	privateKey, publicKey := GenerateKeys()
-	doc.prMap[id] = privateKey
-	doc.pubMap[id] = publicKey
+	doc.prMap[id] = *privateKey
+	doc.pubMap[id] = *publicKey
 	doc.selfId = id
 
 	fmt.Println("---- NEW DOCTOR ----")
