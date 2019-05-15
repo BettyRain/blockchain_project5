@@ -5,12 +5,6 @@ import (
 	"sync"
 )
 
-type PatientData struct {
-	PatInfo string
-	PatId   string
-	DocId   string
-}
-
 type DataPool struct {
 	DB   map[string]string
 	Sign []byte

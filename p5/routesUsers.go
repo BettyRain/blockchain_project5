@@ -31,7 +31,7 @@ var routesDoc = Routes{
 		AddData,
 	},
 	Route{
-		"RegisterPatient",
+		"RegisterDoctor",
 		"GET",
 		"/start",
 		StartDoc,
