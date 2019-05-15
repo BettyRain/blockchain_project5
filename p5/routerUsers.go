@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+//Doctor's application
 func NewRouterDoc() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routesDoc {
@@ -21,6 +22,7 @@ func NewRouterDoc() *mux.Router {
 	return router
 }
 
+//Patient's application
 func NewRouterPat() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routesPat {

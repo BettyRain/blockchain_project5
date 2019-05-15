@@ -26,14 +26,13 @@ func NewDoctorList(id string) DoctorList {
 	return docList
 }
 
+//Doctor's registration, public-private keys computations
 func (doc *DoctorList) Register(id string) {
 	doc.mux.Lock()
-	//pat.patID = id
 	if len(doc.PubMap) < 1 {
 		doc.PubMap = make(map[string][]byte)
 		doc.prMap = make(map[string][]byte)
 	}
-
 	privateKey, publicKey := GenerateKeys()
 	doc.prMap[id] = privateKey
 	doc.PubMap[id] = publicKey
@@ -47,6 +46,7 @@ func (doc *DoctorList) Register(id string) {
 	defer doc.mux.Unlock()
 }
 
+//Doctor's signature creation
 func (doc *DoctorList) SignByDoc(patInfo string, docID string) []byte {
 	//preparing data for signatures
 	rng := rand.Reader
@@ -65,6 +65,7 @@ func (doc *DoctorList) SignByDoc(patInfo string, docID string) []byte {
 	return signature
 }
 
+//Doctor verifies his signature (to have an ability to access the data)
 func (doc *DoctorList) VerifyDocSign(pastID string, patInfo string, docID string, sign []byte) bool {
 	message := []byte(patInfo)
 	hashed := sha256.Sum256(message)
@@ -80,10 +81,7 @@ func (doc *DoctorList) VerifyDocSign(pastID string, patInfo string, docID string
 	}
 }
 
-func (doc *DoctorList) GetPublicMap() map[string][]byte {
-	return doc.PubMap
-}
-
+//Patient verifies his doctor's signature
 func (doc *DoctorList) VerifyDocSignForPatient(docID string, patInfo string, sign []byte) bool {
 	message := []byte(patInfo)
 	hashed := sha256.Sum256(message)

@@ -1,10 +1,8 @@
 package dataPr5
 
 import (
-	"fmt"
 	"reflect"
 	"sync"
-	"unsafe"
 )
 
 type PatientData struct {
@@ -14,8 +12,7 @@ type PatientData struct {
 }
 
 type DataPool struct {
-	DB map[string]string
-	//DocId H< PatID - Info >
+	DB   map[string]string
 	Sign []byte
 	Hops int
 }
@@ -39,28 +36,27 @@ func (iq *ItemQueue) RemoveItem(index int) ItemQueue {
 	return *iq
 }
 
+func (iq *ItemQueue) RemoveAddedData(trie map[string]string) {
+	for key, value := range trie {
+		for i := 0; i < len(iq.Items); i++ {
+			for k, v := range iq.Items[i].DB {
+				if (k == key) && (v == value) {
+					iq.RemoveItem(i)
+				}
+			}
+		}
+	}
+}
+
 //add dataPr5 to pool
 func AddToPool(docID string, patID string, patInfo string, pat PatientList, doc DoctorList) DataPool {
 	//Encrypt PatientInfo with patient's Private Key
 	hash := pat.EncryptPatInfo(patID, patInfo)
 	docHash := doc.SignByDoc(hash, docID)
 	data := make(map[string]string)
-	docHashHash := BytesToString(docHash)
-	// str2 := string(byteArray1[:])
-	//  str3 := bytes.NewBuffer(byteArray1).String()
-
 	data[docID] = hash
-	fmt.Println("2222222222222222222")
-	fmt.Println(docHashHash)
-	fmt.Println("2222222222222222222")
 	dataPool := DataPool{data, docHash, 3}
 	return dataPool
-}
-
-func BytesToString(b []byte) string {
-	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	sh := reflect.StringHeader{bh.Data, bh.Len}
-	return *(*string)(unsafe.Pointer(&sh))
 }
 
 //add dataPr5 to queue

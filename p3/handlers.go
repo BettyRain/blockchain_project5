@@ -31,8 +31,6 @@ var Peers data.PeerList
 var ifStarted bool
 var IQ dataPr5.ItemQueue
 
-//var itemQueue []dataPr5.DataPool
-
 //Create SyncBlockChain and PeerList instances.
 func init() {
 	// This function will be executed before everything else.
@@ -85,7 +83,6 @@ func Register() int32 {
 	return 0
 }
 
-// Download blockchain from TA server
 // Download the current BlockChain from your own first node(can be hardcoded).
 // It's ok to use this function only after launching a new node.
 // You may not need it after node starts heartBeats.
@@ -192,7 +189,6 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 	Peers.Add(heartBeatDataNew.Addr, heartBeatDataNew.Id)
 
 	if heartBeatDataNew.IfNewBlock {
-		fmt.Println("RECEIVE A BLOCK")
 		newBlock := p2.Block{}
 		newBlock.DecodeFromJson(heartBeatDataNew.BlockJson)
 
@@ -202,13 +198,8 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 				AskForBlock(newBlock.GetHeight()-1, newBlock.GetParentHash())
 			}
 
-			RemoveAddedData(newBlock.Value)
+			IQ.RemoveAddedData(newBlock.Value.GetKeyValue())
 			SBC.Insert(newBlock)
-			//TODO: ПОСМОТРИ ТУТ ЧТО-ТО С ДАННЫМИ
-			fmt.Println("yyyyyyyyyyyyyyyyyyyyyyyyyyy")
-			fmt.Println(newBlock.Value.GetKeyValue())
-			fmt.Println("yyyyyyyyyyyyyyyyyyyyyyyyyyy")
-
 		} else {
 			fmt.Println("NONCE NOT VERIFIED")
 		}
@@ -221,24 +212,12 @@ func HeartBeatReceive(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func RemoveAddedData(trie p1.MerklePatriciaTrie) {
-	for key, value := range trie.GetKeyValue() {
-		for i := 0; i < len(IQ.Items); i++ {
-			for k, v := range IQ.Items[i].DB {
-				if (k == key) && (v == value) {
-					IQ.RemoveItem(i)
-				}
-			}
-		}
-	}
-}
-
 // Ask another server to return a block of certain height and hash
 // Loop through all peers in local PeerMap to download a block. As soon as one peer returns the block, stop the loop.
 func AskForBlock(height int32, hash string) {
 	Peers.Rebalance()
 
-	for key, _ := range Peers.Copy() {
+	for key := range Peers.Copy() {
 		resp, err := http.Get(key + "/block/" + string(height) + "/" + hash)
 		if err != nil {
 			println(err)
@@ -266,11 +245,9 @@ func AskForBlock(height int32, hash string) {
 //send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
 func ForwardHeartBeat(heartBeatData data.HeartBeatData) {
 	fmt.Println("IT IS MY BLOCK WOHOO")
-	fmt.Println(heartBeatData.BlockJson)
-	fmt.Println("IT IS MY BLOCK WOHOO")
 	Peers.Rebalance()
 	heartBeatJson, _ := json.Marshal(heartBeatData)
-	for key, _ := range Peers.Copy() {
+	for key := range Peers.Copy() {
 		http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
 	}
 }
@@ -305,7 +282,7 @@ func StartHeartBeat() {
 				println(err)
 			}
 			Peers.Rebalance()
-			for key, _ := range Peers.Copy() {
+			for key := range Peers.Copy() {
 				http.Post(key+"/heartbeat/receive", "application/json", bytes.NewBuffer(heartBeatJson))
 			}
 		}
@@ -375,11 +352,7 @@ start:
 		peerMapJson, _ := Peers.PeerMapToJson()
 		heartBeat := data.NewHeartBeatData(true, Peers.GetSelfId(), blockJson, peerMapJson, SELF_ADDR)
 		ForwardHeartBeat(heartBeat)
-		RemoveAddedData(newBlock.Value)
-
-		/*	fmt.Println("IT IS MY BLOCK WOHOO")
-			fmt.Println(newBlock.Value)
-			fmt.Println("IT IS MY BLOCK WOHOO")*/
+		IQ.RemoveAddedData(newBlock.Value.GetKeyValue())
 	}
 }
 
@@ -408,9 +381,7 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 	mpt := p1.MerklePatriciaTrie{}
 
 	if n > 0 {
-		fmt.Println("IT IS BIGGER THAN 1 YAAY")
 		num := rand.Intn(n)
-		fmt.Println(num)
 		count := 0
 		if num == 0 {
 			num = 1
@@ -424,8 +395,6 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 			} else {
 				break
 			}
-
-			fmt.Println("IT IS BIGGER THAN 1 YAAY")
 		}
 	} else {
 		mpt.Insert("nil", "nil", []byte{})
@@ -437,19 +406,11 @@ func GenerateMPT(IQ dataPr5.ItemQueue) p1.MerklePatriciaTrie {
 //Send the HeartBeatData to all peers in local PeerMap.
 //send heartbeat to all local nodes in peermap, I  SHOULD rebalance before sending
 func ForwardNewData(dataPool dataPr5.DataPool) {
-	fmt.Println("6666666666666666666666666")
-	fmt.Println(dataPool)
-	fmt.Println("66666666666666666666666")
 	dataJson, _ := json.Marshal(dataPool)
-	fmt.Println("DATA JSON")
-	fmt.Println(dataJson)
-	fmt.Println("DATA JSON")
-
 	if dataPool.Hops == 3 {
 		http.Post(FIRST_NODE_ADDR+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
 	} else {
-		//TODO: data to json - check
-		for key, _ := range Peers.Copy() {
+		for key := range Peers.Copy() {
 			http.Post(key+"/data/receive", "application/json", bytes.NewBuffer(dataJson))
 		}
 	}
@@ -465,8 +426,6 @@ func DataReceive(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		println(err)
 	}
-
-	//TODO: check json data
 	IQ.AddToQueue(data)
 	newHops := data.Hops - 1
 	data.Hops = newHops

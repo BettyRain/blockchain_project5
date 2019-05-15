@@ -31,6 +31,7 @@ type PatientMessage struct {
 	Hops       int
 }
 
+//New list creation
 func NewPatientList(id string) PatientList {
 	patList := PatientList{}
 	patList.Register(id)
@@ -39,19 +40,18 @@ func NewPatientList(id string) PatientList {
 	return patList
 }
 
+//Add new patient data to hashmaps
 func (pat *PatientList) AddNewPatient(PubMap map[string][]byte, PrMap map[string][]byte) {
-	fmt.Println("ADD NEW PATIENT")
-	fmt.Println(pat.PubMap)
 	for key, value := range PubMap {
 		pat.PubMap[key] = value
 	}
 	for key, value := range PrMap {
 		pat.PrMap[key] = value
 	}
-	fmt.Println(pat.PubMap)
-	fmt.Println("ADD NEW PATIENT")
 }
 
+//Show the patient list
+//Used to check if Doctor has an access to patients data
 func (pat *PatientList) Show() string {
 	pat.mux.Lock()
 	defer pat.mux.Unlock()
@@ -62,9 +62,10 @@ func (pat *PatientList) Show() string {
 	return res
 }
 
+//New patient registration
+//Public-private keys creation
 func (pat *PatientList) Register(id string) {
 	pat.mux.Lock()
-	//pat.patID = id
 	if len(pat.PubMap) < 1 {
 		pat.PubMap = make(map[string][]byte)
 		pat.PrMap = make(map[string][]byte)
@@ -77,11 +78,11 @@ func (pat *PatientList) Register(id string) {
 	fmt.Printf("privateKey=%v\n", privateKey)
 	fmt.Printf("publicKey=%v\n", publicKey)
 	fmt.Printf("SelfIdPat=%v\n", id)
-	fmt.Printf("PAT LIST=%v\n", pat)
 	fmt.Println("---- NEW PATIENT ----")
 	defer pat.mux.Unlock()
 }
 
+//Keys generation by RSA library
 func GenerateKeys() ([]byte, []byte) {
 	reader := rand.Reader
 	bitSize := 2048
@@ -92,6 +93,7 @@ func GenerateKeys() ([]byte, []byte) {
 	return pr, pub
 }
 
+//Encrypting Patient Info via RSA library
 func (pat *PatientList) EncryptPatInfo(patID string, patInfo string) string {
 	rng := rand.Reader
 	message := []byte(patInfo)
@@ -105,6 +107,7 @@ func (pat *PatientList) EncryptPatInfo(patID string, patInfo string) string {
 	return string(jsonData)
 }
 
+//Decrypting Patient Info via RSA library
 func (pat *PatientList) DecryptPatInfo(hash string) map[string]string {
 	var m map[string][]byte
 	err := json.Unmarshal([]byte(hash), &m)
@@ -127,7 +130,7 @@ func (pat *PatientList) DecryptPatInfo(hash string) map[string]string {
 	return patInf
 }
 
-// PrivateKeyToBytes private key to bytes
+// PrivateKeyToBytes private key to bytes via RSA library
 func PrivateKeyToBytes(priv *rsa.PrivateKey) []byte {
 	privBytes := pem.EncodeToMemory(
 		&pem.Block{
@@ -139,11 +142,11 @@ func PrivateKeyToBytes(priv *rsa.PrivateKey) []byte {
 	return privBytes
 }
 
-// PublicKeyToBytes public key to bytes
+// PublicKeyToBytes public key to bytes via RSA library
 func PublicKeyToBytes(pub *rsa.PublicKey) []byte {
 	pubASN1, err := x509.MarshalPKIXPublicKey(pub)
 	if err != nil {
-		//log.Error(err)
+		fmt.Println(err)
 	}
 
 	pubBytes := pem.EncodeToMemory(&pem.Block{
@@ -154,31 +157,27 @@ func PublicKeyToBytes(pub *rsa.PublicKey) []byte {
 	return pubBytes
 }
 
-// BytesToPrivateKey bytes to private key
+// BytesToPrivateKey bytes to private key via RSA library
 func BytesToPrivateKey(priv []byte) *rsa.PrivateKey {
-	fmt.Println("BytesToPrivateKey")
-	fmt.Println(priv)
 	block, _ := pem.Decode(priv)
 	enc := x509.IsEncryptedPEMBlock(block)
-	fmt.Println("BytesToPrivateKey")
-
 	b := block.Bytes
 	var err error
 	if enc {
 		log.Println("is encrypted pem block")
 		b, err = x509.DecryptPEMBlock(block, nil)
 		if err != nil {
-			//log.Error(err)
+			fmt.Println(err)
 		}
 	}
 	key, err := x509.ParsePKCS1PrivateKey(b)
 	if err != nil {
-		//log.Error(err)
+		fmt.Println(err)
 	}
 	return key
 }
 
-// BytesToPublicKey bytes to public key
+// BytesToPublicKey bytes to public key via RSA library
 func BytesToPublicKey(pub []byte) *rsa.PublicKey {
 	block, _ := pem.Decode(pub)
 	enc := x509.IsEncryptedPEMBlock(block)
@@ -188,20 +187,16 @@ func BytesToPublicKey(pub []byte) *rsa.PublicKey {
 		log.Println("is encrypted pem block")
 		b, err = x509.DecryptPEMBlock(block, nil)
 		if err != nil {
-			//log.Error(err)
+			fmt.Println(err)
 		}
 	}
 	ifc, err := x509.ParsePKIXPublicKey(b)
 	if err != nil {
-		//log.Error(err)
+		fmt.Println(err)
 	}
 	key, ok := ifc.(*rsa.PublicKey)
 	if !ok {
-		//log.Error("not ok")
+		fmt.Println("ok error")
 	}
 	return key
-}
-
-func (pat *PatientList) GetPublicKeys() map[string][]byte {
-	return pat.PubMap
 }
