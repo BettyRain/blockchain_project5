@@ -179,4 +179,3 @@ RSA library functions were found at [blockchain documentation](https://golang.or
 
 ### Video Link
 Best Version: https://youtu.be/uMaURMzU0b8
-Better quality: https://drive.google.com/open?id=1XSsaqG18J4SDqLMlynZpcH2mczru-q5B
