@@ -176,3 +176,6 @@ type ItemQueue struct {
 ### References
 Idea was found at [blockchain ideas](https://www.connectbit.com/blockchain-applications/) website.
 RSA library functions were found at [blockchain documentation](https://golang.org/pkg/crypto/rsa/) and [implementation_example](https://gist.github.com/miguelmota/3ea9286bd1d3c2a985b67cac4ba2130a) websites.
+
+### Video Link
+Best Version: 
